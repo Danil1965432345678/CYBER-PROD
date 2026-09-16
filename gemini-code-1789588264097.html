@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberCasino & Task Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0b0d14;
+      --card-bg: rgba(22, 27, 46, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary-chips: #8b5cf6;
+      --primary-chips-glow: rgba(139, 92, 246, 0.4);
+      --primary-money: #10b981;
+      --primary-money-glow: rgba(16, 185, 129, 0.4);
+      --accent-gold: #f59e0b;
+      --accent-danger: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: rgba(15, 18, 30, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      font-weight: 900;
+      font-size: 1.4rem;
+      background: linear-gradient(135deg, #a78bfa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .balances {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+    }
+
+    .balance-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .balance-pill.chips {
+      border-color: rgba(139, 92, 246, 0.3);
+      box-shadow: 0 0 15px var(--primary-chips-glow);
+    }
+
+    .balance-pill.money {
+      border-color: rgba(16, 185, 129, 0.3);
+      box-shadow: 0 0 15px var(--primary-money-glow);
+    }
+
+    .stat-badge {
+      background: rgba(255,255,255,0.06);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Navigation */
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      padding: 1.2rem;
+      background: rgba(11, 13, 20, 0.5);
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 0.7rem 1.4rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(16, 185, 129, 0.2));
+      border-color: var(--primary-chips);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
+    }
+
+    /* Main App Layout */
+    main {
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Casino Specifics */
+    .game-selector {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .game-tab {
+      flex: 1;
+      min-width: 120px;
+      padding: 0.8rem;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+
+    .game-tab.active {
+      background: var(--primary-chips);
+      color: #fff;
+      box-shadow: 0 0 15px var(--primary-chips-glow);
+    }
+
+    /* Dice Slider Styling */
+    .slider-container {
+      position: relative;
+      margin: 2rem 0;
+    }
+
+    .dice-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 14px;
+      border-radius: 7px;
+      background: linear-gradient(90deg, #10b981 var(--slider-pct, 50%), #ef4444 var(--slider-pct, 50%));
+      outline: none;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .dice-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+      border: 3px solid var(--primary-chips);
+      transition: transform 0.1s;
+    }
+
+    .dice-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .stat-box {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-box label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-box span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    /* Input Controls */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .input-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    input[type="number"], input[type="text"], select {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus, input[type="text"]:focus {
+      border-color: var(--primary-chips);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      width: auto;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: white;
+      box-shadow: 0 4px 20px var(--primary-chips-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px var(--primary-chips-glow);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 4px 20px var(--primary-money-glow);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+
+    /* Mines Game */
+    .mines-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.6rem;
+      max-width: 420px;
+      margin: 1.5rem auto;
+    }
+
+    .mine-cell {
+      aspect-ratio: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mine-cell:hover:not(.revealed) {
+      background: rgba(255, 255, 255, 0.12);
+      transform: scale(1.03);
+    }
+
+    .mine-cell.gem {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: var(--primary-money);
+    }
+
+    .mine-cell.bomb {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: var(--accent-danger);
+    }
+
+    /* List Items */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .item-row {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      padding: 1rem;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-easy { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .badge-medium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .badge-hard { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    /* Footer & Admin */
+    footer {
+      margin-top: auto;
+      padding: 1.5rem;
+      text-align: center;
+      border-top: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .admin-trigger {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.15);
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal {
+      background: #121524;
+      border: 1px solid var(--card-border);
+      padding: 2rem;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 450px;
+    }
+
+    .crash-display {
+      height: 200px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 900;
+      color: var(--primary-money);
+      margin-bottom: 1rem;
+    }
+
+    .provably-fair {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      word-break: break-all;
+      background: rgba(0,0,0,0.2);
+      padding: 0.5rem;
+      border-radius: 6px;
+      margin-top: 0.8rem;
+    }
+
+    /* Mobile Responsive Adaptation */
+    @media (max-width: 650px) {
+      header {
+        flex-direction: column;
+        gap: 0.8rem;
+        padding: 0.8rem 1rem;
+        align-items: center;
+      }
+
+      .brand {
+        font-size: 1.2rem;
+      }
+
+      .balances {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .balance-pill {
+        flex: 1;
+        justify-content: center;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+      }
+
+      .stat-badge {
+        width: 100%;
+        text-align: center;
+        font-size: 0.8rem;
+        order: 3;
+      }
+
+      nav {
+        padding: 0.8rem 0.5rem;
+        gap: 0.4rem;
+      }
+
+      .nav-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+        flex: 1 1 30%;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">🎰 CYBER-PROD</div>
+    <div class="balances">
+      <div class="stat-badge">Выполнено сегодня: <span id="daily-count">0</span></div>
+      <div class="balance-pill chips">
+        <span>🟣</span>
+        <span id="chips-balance">0</span>
+        <small style="font-size:0.65rem; color:var(--text-muted)">ФИШКИ</small>
+      </div>
+      <div class="balance-pill money">
+        <span>💵</span>
+        <span id="money-balance">0</span>
+        <small style="font-size:0.65rem; color:var(--text-muted)">ДЕНЬГИ</small>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav>
+    <button class="nav-btn active" onclick="switchTab('casino', event)">🎰 Казино</button>
+    <button class="nav-btn" onclick="switchTab('buy-chips', event)">🪙 Покупка</button>
+    <button class="nav-btn" onclick="switchTab('tasks', event)">⚡ Задания</button>
+    <button class="nav-btn" onclick="switchTab('store', event)">🛒 Магазин</button>
+    <button class="nav-btn" onclick="switchTab('editor', event)">🛠️ Редактор</button>
+    <button class="nav-btn" onclick="switchTab('history', event)">📜 История</button>
+  </nav>
+
+  <!-- Main Container -->
+  <main>
+
+    <!-- TAB 1: CASINO (Convert Chips -> Money) -->
+    <div id="tab-casino" class="tab-content active">
+      <div class="card">
+        <div class="game-selector">
+          <div class="game-tab active" onclick="switchGame('dice', event)">Dice</div>
+          <div class="game-tab" onclick="switchGame('crash', event)">Crash</div>
+          <div class="game-tab" onclick="switchGame('mines', event)">Minesweeper</div>
+          <div class="game-tab" onclick="switchGame('coinflip', event)">Coinflip</div>
+        </div>
+
+        <div class="input-group">
+          <label>Ставка (в Фишках 🟣):</label>
+          <input type="number" id="bet-amount" min="1" value="100">
+        </div>
+
+        <!-- GAME: DICE -->
+        <div id="game-dice" class="game-box">
+          <div class="slider-container">
+            <input type="range" id="dice-chance" class="dice-slider" min="1" max="99" value="50" oninput="updateDiceStats()">
+          </div>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <label>Шанс победы</label>
+              <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                <input type="number" id="dice-chance-num" min="1" max="99" value="50" style="width:70px; text-align:center; padding:2px;" oninput="syncDiceInput(this.value)">
+                <span>%</span>
+              </div>
+            </div>
+            <div class="stat-box"><label>Множитель</label><span id="dice-mult">2.00x</span></div>
+            <div class="stat-box"><label>Возможный выигрыш</label><span id="dice-payout" style="color:var(--primary-money)">200 💵</span></div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:1.5rem" onclick="playDice()">Сделать ставку</button>
+        </div>
+
+        <!-- GAME: CRASH -->
+        <div id="game-crash" class="game-box" style="display:none">
+          <div class="crash-display" id="crash-mult">1.00x</div>
+          <button class="btn btn-primary" id="crash-btn" onclick="handleCrashAction()">Старт</button>
+        </div>
+
+        <!-- GAME: MINES -->
+        <div id="game-mines" class="game-box" style="display:none">
+          <div class="input-group">
+            <label>Количество мин (1-24):</label>
+            <input type="number" id="mines-count" min="1" max="24" value="3">
+          </div>
+          <div class="mines-grid" id="mines-grid"></div>
+          <button class="btn btn-primary" id="mines-btn" onclick="startMinesGame()">Начать игру</button>
+        </div>
+
+        <!-- GAME: COINFLIP -->
+        <div id="game-coinflip" class="game-box" style="display:none; text-align:center">
+          <div style="font-size: 5rem; margin: 1rem 0;" id="coin-icon">🪙</div>
+          <div style="display:flex; gap:1rem; margin-bottom: 1.5rem;">
+            <button class="btn btn-primary" onclick="playCoinflip('ОРЁЛ')">ОРЁЛ (2.00x)</button>
+            <button class="btn btn-primary" onclick="playCoinflip('РЕШКА')">РЕШКА (2.00x)</button>
+          </div>
+        </div>
+
+        <div class="provably-fair">
+          🔐 SHA-256 Seed Hash: <span id="pf-hash">Инициализация...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: BUY CHIPS (Convert Money -> Chips) -->
+    <div id="tab-buy-chips" class="tab-content">
+      <div class="card">
+        <h2>🪙 Покупка фишек (Обмен валюты)</h2>
+        <p style="color:var(--text-muted); margin-top:0.4rem; margin-bottom:1.5rem">
+          Тратишь Деньги (💵), чтобы получить Фишки (🟣) для игры в казино.
+        </p>
+
+        <!-- Mode Toggle -->
+        <div style="display:flex; gap:0.8rem; margin-bottom:1.5rem">
+          <button id="buy-mode-bank-btn" class="nav-btn active" onclick="switchBuyMode('bank')">🏦 1. Безопасный (Банк)</button>
+          <button id="buy-mode-risk-btn" class="nav-btn" onclick="switchBuyMode('risk')">🎰 2. Колесо / Риск (Лутбокс)</button>
+        </div>
+
+        <!-- MODE 1: BANK (SAFE) -->
+        <div id="buy-mode-bank" class="buy-box">
+          <div class="input-group">
+            <label>Отдать Денег (💵):</label>
+            <input type="number" id="bank-money-input" min="5" value="50" oninput="updateBankExchange()">
+          </div>
+          <div class="stats-grid" style="margin-bottom:1.5rem">
+            <div class="stat-box">
+              <label>Фиксированный курс</label>
+              <span>5 💵 = 1 🟣</span>
+            </div>
+            <div class="stat-box">
+              <label>Получите Фишек</label>
+              <span id="bank-chips-output" style="color:var(--primary-chips)">10 🟣</span>
+            </div>
+          </div>
+          <button class="btn btn-success" onclick="buyChipsBank()">Обменять безопасно</button>
+        </div>
+
+        <!-- MODE 2: RISK (WHEEL / LOOTBOX) -->
+        <div id="buy-mode-risk" class="buy-box" style="display:none; text-align:center">
+          <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.3); padding:0.8rem; border-radius:10px; margin-bottom:1.2rem; font-size:0.9rem">
+            🔥 <strong>Спин за 30 💵!</strong> Базовый курс в колесе выгоден: <strong>3 💵 = 1 🟣</strong> (в банке 5 💵 = 1 🟣).<br>Выпадает случайный множитель от 0.2x до 5.0x 🔥!
+          </div>
+
+          <!-- Wheel Canvas -->
+          <div style="position:relative; width:280px; height:280px; margin:0 auto 1.5rem;">
+            <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent; border-top:20px solid var(--accent-gold); z-index:10; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></div>
+            <canvas id="buy-wheel-canvas" width="280" height="280" style="border-radius:50%; box-shadow: 0 0 25px rgba(139, 92, 246, 0.3); transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1);"></canvas>
+          </div>
+
+          <button class="btn btn-primary" id="buy-wheel-spin-btn" onclick="spinBuyChipsWheel()">Крутить за 30 💵</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: TASKS -->
+    <div id="tab-tasks" class="tab-content">
+      <div class="card">
+        <h2 style="margin-bottom:1rem">Ежедневные Задания</h2>
+        <div class="item-list" id="tasks-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: STORE -->
+    <div id="tab-store" class="tab-content">
+      <div class="card">
+        <h2 style="margin-bottom:1rem">Магазин Наград</h2>
+        <div class="item-list" id="store-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 5: EDITOR -->
+    <div id="tab-editor" class="tab-content">
+      <div class="card">
+        <h3>➕ Добавить задание</h3>
+        <div class="input-group" style="margin-top:1rem">
+          <label>Название:</label>
+          <input type="text" id="new-task-name" placeholder="Прочитать книгу">
+        </div>
+        <div class="input-group">
+          <label>Награда (Фишки 🟣):</label>
+          <input type="number" id="new-task-reward" value="150">
+        </div>
+        <div class="input-group">
+          <label>Сложность:</label>
+          <select id="new-task-diff">
+            <option value="easy">Простая</option>
+            <option value="medium">Средняя</option>
+            <option value="hard">Сложная</option>
+          </select>
+        </div>
+        <button class="btn btn-success" onclick="addNewTask()">Сохранить задание</button>
+      </div>
+
+      <div class="card">
+        <h3>🗑️ Управление заданиями</h3>
+        <div class="item-list" id="editor-tasks-list" style="margin-top:1rem"></div>
+      </div>
+
+      <div class="card">
+        <h3>➕ Добавить награду в Магазин</h3>
+        <div class="input-group" style="margin-top:1rem">
+          <label>Название:</label>
+          <input type="text" id="new-item-name" placeholder="Поход в кино">
+        </div>
+        <div class="input-group">
+          <label>Цена (Деньги 💵):</label>
+          <input type="number" id="new-item-cost" value="2000">
+        </div>
+        <button class="btn btn-success" onclick="addNewStoreItem()">Сохранить товар</button>
+      </div>
+
+      <div class="card">
+        <h3>🗑️ Управление товарами</h3>
+        <div class="item-list" id="editor-store-list" style="margin-top:1rem"></div>
+      </div>
+    </div>
+
+    <!-- TAB 6: HISTORY -->
+    <div id="tab-history" class="tab-content">
+      <div class="card">
+        <h2 style="margin-bottom:1rem">История Операций</h2>
+        <div class="item-list" id="history-list"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <span>Cyber-Casino Self-Economy System &copy; 2026</span>
+    <button class="admin-trigger" onclick="openAdminModal()">⚙️ Админ</button>
+  </footer>
+
+  <!-- Admin Modal -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal">
+      <h3 style="margin-bottom:1rem; color:var(--accent-gold)">Панель Админа</h3>
+      <div class="input-group">
+        <label>Фишки (🟣):</label>
+        <input type="number" id="admin-chips">
+      </div>
+      <div class="input-group">
+        <label>Деньги (💵):</label>
+        <input type="number" id="admin-money">
+      </div>
+      <div style="display:flex; gap:0.5rem; margin-top:1rem">
+        <button class="btn btn-success" onclick="saveAdminChanges()">Сохранить</button>
+        <button class="btn btn-danger" onclick="closeAdminModal()">Отмена</button>
+      </div>
+      <hr style="margin:1rem 0; border-color:var(--card-border)">
+      <button class="btn btn-danger" style="font-size:0.8rem" onclick="resetAllData()">Сбросить данные</button>
+    </div>
+  </div>
+
+  <script>
+    /* --- STATE --- */
+    const DEFAULT_STATE = {
+      chips: 500,
+      money: 100,
+      dailyCompleted: 0,
+      tasks: [
+        { id: 1, name: 'Почистить зубы вовремя', reward: 50, diff: 'easy' },
+        { id: 2, name: 'Помыть посуду', reward: 100, diff: 'easy' },
+        { id: 3, name: 'Занятие английским', reward: 300, diff: 'medium' },
+        { id: 4, name: 'Подъём в 06:00 без откладываний', reward: 1000, diff: 'hard' }
+      ],
+      store: [
+        { id: 1, name: 'Вкусняшка / Газировка', cost: 2000 },
+        { id: 2, name: 'Вечер чилла / Фильм', cost: 6000 },
+        { id: 3, name: 'Полный день релакса', cost: 35000 }
+      ],
+      history: [],
+      currentSeed: ''
+    };
+
+    let state = JSON.parse(localStorage.getItem('cyber_economy_db')) || DEFAULT_STATE;
+
+    function saveState() {
+      localStorage.setItem('cyber_economy_db', JSON.stringify(state));
+      renderUI();
+    }
+
+    /* --- PROVABLY FAIR --- */
+    async function generateProvablyFairSeed() {
+      const randomSecret = Math.random().toString(36).substring(2) + Date.now().toString();
+      const msgUint8 = new TextEncoder().encode(randomSecret);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      state.currentSeed = randomSecret;
+      document.getElementById('pf-hash').innerText = hashHex.substring(0, 32) + '...';
+    }
+
+    /* --- RENDER UI --- */
+    function renderUI() {
+      document.getElementById('chips-balance').innerText = state.chips.toLocaleString();
+      document.getElementById('money-balance').innerText = state.money.toLocaleString();
+      document.getElementById('daily-count').innerText = state.dailyCompleted;
+
+      // Tasks (Always repeatable)
+      const tasksContainer = document.getElementById('tasks-list');
+      tasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
+      state.tasks.forEach(t => {
+        tasksContainer.innerHTML += `
+          <div class="item-row">
+            <div>
+              <span class="badge badge-${t.diff}">${t.diff}</span>
+              <strong style="margin-left:8px">${t.name}</strong>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem">
+              <span style="color:var(--primary-chips); font-family:'JetBrains Mono'; font-weight:700">+${t.reward} 🟣</span>
+              <button class="btn btn-success btn-sm" onclick="completeTask(${t.id})">
+                Завершить
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      // Store
+      const storeContainer = document.getElementById('store-list');
+      storeContainer.innerHTML = state.store.length === 0 ? '<div style="color:var(--text-muted)">Магазин пуст</div>' : '';
+      state.store.forEach(s => {
+        storeContainer.innerHTML += `
+          <div class="item-row">
+            <strong>${s.name}</strong>
+            <div style="display:flex; align-items:center; gap:1rem">
+              <span style="color:var(--primary-money); font-family:'JetBrains Mono'; font-weight:700">${s.cost.toLocaleString()} 💵</span>
+              <button class="btn btn-primary btn-sm" onclick="buyStoreItem(${s.id})">Купить</button>
+            </div>
+          </div>
+        `;
+      });
+
+      // Editor Tasks
+      const edTasksContainer = document.getElementById('editor-tasks-list');
+      edTasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
+      state.tasks.forEach(t => {
+        edTasksContainer.innerHTML += `
+          <div class="item-row">
+            <div><span class="badge badge-${t.diff}">${t.diff}</span> <strong style="margin-left:8px">${t.name}</strong> (${t.reward} 🟣)</div>
+            <button class="btn btn-danger btn-sm" onclick="deleteTask(${t.id})">🗑️ Удалить</button>
+          </div>
+        `;
+      });
+
+      // Editor Store
+      const edStoreContainer = document.getElementById('editor-store-list');
+      edStoreContainer.innerHTML = state.store.length === 0 ? '<div style="color:var(--text-muted)">Товаров нет</div>' : '';
+      state.store.forEach(s => {
+        edStoreContainer.innerHTML += `
+          <div class="item-row">
+            <div><strong>${s.name}</strong> (${s.cost.toLocaleString()} 💵)</div>
+            <button class="btn btn-danger btn-sm" onclick="deleteStoreItem(${s.id})">🗑️ Удалить</button>
+          </div>
+        `;
+      });
+
+      // History
+      const histContainer = document.getElementById('history-list');
+      histContainer.innerHTML = state.history.length === 0 ? '<div style="color:var(--text-muted)">История пуста</div>' : '';
+      state.history.slice().reverse().forEach(h => {
+        histContainer.innerHTML += `
+          <div class="item-row" style="font-size:0.9rem">
+            <span style="color:var(--text-muted)">[${h.time}]</span>
+            <span>${h.details}</span>
+            <strong style="color:${h.win ? 'var(--primary-money)' : 'var(--accent-danger)'}">${h.amount}</strong>
+          </div>
+        `;
+      });
+
+      updateDiceStats();
+      updateBankExchange();
+      drawBuyWheel();
+    }
+
+    function switchTab(tabName, evt) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      if (evt && evt.target) evt.target.classList.add('active');
+      if (tabName === 'buy-chips') drawBuyWheel();
+    }
+
+    function switchGame(gameName, evt) {
+      document.querySelectorAll('.game-box').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(`game-${gameName}`).style.display = 'block';
+      if (evt && evt.target) evt.target.classList.add('active');
+    }
+
+    function addHistory(details, amount, win = true) {
+      const time = new Date().toLocaleTimeString();
+      state.history.push({ time, details, amount, win });
+      if (state.history.length > 30) state.history.shift();
+    }
+
+    /* --- BUY CHIPS TAB LOGIC --- */
+    function switchBuyMode(mode) {
+      document.getElementById('buy-mode-bank').style.display = mode === 'bank' ? 'block' : 'none';
+      document.getElementById('buy-mode-risk').style.display = mode === 'risk' ? 'block' : 'none';
+      document.getElementById('buy-mode-bank-btn').classList.toggle('active', mode === 'bank');
+      document.getElementById('buy-mode-risk-btn').classList.toggle('active', mode === 'risk');
+      if (mode === 'risk') drawBuyWheel();
+    }
+
+    function updateBankExchange() {
+      const input = parseInt(document.getElementById('bank-money-input').value) || 0;
+      // BANK RATE: 5 money = 1 chip
+      const chipsOutput = Math.floor(input / 5);
+      document.getElementById('bank-chips-output').innerText = `${chipsOutput} 🟣`;
+    }
+
+    function buyChipsBank() {
+      const input = parseInt(document.getElementById('bank-money-input').value);
+      if (isNaN(input) || input < 5) return alert('Минимальная сумма обмена: 5 💵');
+      if (input > state.money) return alert('Недостаточно Денег для обмена!');
+
+      const chipsOutput = Math.floor(input / 5);
+      state.money -= input;
+      state.chips += chipsOutput;
+      addHistory(`Покупка фишек (Банк): ${input} 💵 -> ${chipsOutput} 🟣`, `+${chipsOutput} 🟣`, true);
+      alert(`Успешный обмен! Вы получили ${chipsOutput} 🟣 фишек.`);
+      saveState();
+    }
+
+    /* WHEEL OF FORTUNE FOR BUYING CHIPS */
+    const buyWheelSectors = [
+      { label: '0.2x', mult: 0.2, color: '#ef4444' },
+      { label: '1.0x', mult: 1.0, color: '#3b82f6' },
+      { label: '0.5x', mult: 0.5, color: '#f59e0b' },
+      { label: '1.5x', mult: 1.5, color: '#10b981' },
+      { label: '0.8x', mult: 0.8, color: '#6366f1' },
+      { label: '2.0x', mult: 2.0, color: '#8b5cf6' },
+      { label: '3.0x', mult: 3.0, color: '#ec4899' },
+      { label: '5.0x 🔥', mult: 5.0, color: '#f59e0b' }
+    ];
+
+    let buyWheelSpinning = false;
+    let buyWheelRotation = 0;
+
+    function drawBuyWheel() {
+      const canvas = document.getElementById('buy-wheel-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const numSectors = buyWheelSectors.length;
+      const arc = (2 * Math.PI) / numSectors;
+      const radius = canvas.width / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < numSectors; i++) {
+        const angle = i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = buyWheelSectors[i].color;
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius, angle, angle + arc);
+        ctx.lineTo(radius, radius);
+        ctx.fill();
+        ctx.strokeStyle = '#0b0d14';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px JetBrains Mono';
+        ctx.fillText(buyWheelSectors[i].label, radius - 15, 5);
+        ctx.restore();
+      }
+    }
+
+    function spinBuyChipsWheel() {
+      if (buyWheelSpinning) return;
+      const cost = 30; // 30 money per spin
+      if (state.money < cost) return alert('Недостаточно Денег! Нужно 30 💵.');
+
+      state.money -= cost;
+      buyWheelSpinning = true;
+      const btn = document.getElementById('buy-wheel-spin-btn');
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+
+      const winningIdx = Math.floor(Math.random() * buyWheelSectors.length);
+      const sectorArc = 360 / buyWheelSectors.length;
+      const targetSectorCenterDeg = (winningIdx * sectorArc) + (sectorArc / 2);
+      const stopDeg = 360 - targetSectorCenterDeg - 90;
+
+      const extraRotations = (5 + Math.floor(Math.random() * 3)) * 360;
+      const newRotation = buyWheelRotation + extraRotations + (stopDeg - (buyWheelRotation % 360));
+      buyWheelRotation = newRotation;
+
+      const canvas = document.getElementById('buy-wheel-canvas');
+      canvas.style.transform = `rotate(${buyWheelRotation}deg)`;
+
+      setTimeout(() => {
+        buyWheelSpinning = false;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+
+        const sector = buyWheelSectors[winningIdx];
+        // WHEEL BASE RATE: 3 money = 1 chip baseline (So 30 money = 10 base chips)
+        const baseChips = Math.floor(cost / 3);
+        const wonChips = Math.floor(baseChips * sector.mult);
+
+        state.chips += wonChips;
+        addHistory(`Колесо покупки (${sector.label}): -30 💵`, `+${wonChips} 🟣`, wonChips >= baseChips);
+        alert(`🎰 Результат спина: ${sector.label}!\nВы получили ${wonChips} 🟣 Фишек.`);
+
+        generateProvablyFairSeed();
+        saveState();
+      }, 4000);
+    }
+
+    /* --- TASKS & STORE --- */
+    function completeTask(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (task) {
+        state.chips += task.reward;
+        state.dailyCompleted += 1;
+        addHistory(`Выполнено задание: "${task.name}"`, `+${task.reward} 🟣`, true);
+        alert(`⚡ Выполнено задание: "${task.name}"!\nПолучено +${task.reward} 🟣`);
+        saveState();
+      }
+    }
+
+    function buyStoreItem(id) {
+      const item = state.store.find(s => s.id === id);
+      if (!item) return;
+
+      if (state.money >= item.cost) {
+        state.money -= item.cost;
+        addHistory(`Куплено в магазине: "${item.name}"`, `-${item.cost} 💵`, false);
+        alert(`🎉 Поздравляем! Приобретено: "${item.name}".`);
+        saveState();
+      } else {
+        alert('❌ Недостаточно Денег!');
+      }
+    }
+
+    function addNewTask() {
+      const name = document.getElementById('new-task-name').value.trim();
+      const reward = parseInt(document.getElementById('new-task-reward').value);
+      const diff = document.getElementById('new-task-diff').value;
+      if (!name || isNaN(reward) || reward <= 0) return alert('Заполните все поля!');
+      state.tasks.push({ id: Date.now(), name, reward, diff });
+      document.getElementById('new-task-name').value = '';
+      saveState();
+    }
+
+    function deleteTask(id) {
+      if (confirm('Удалить задание?')) {
+        state.tasks = state.tasks.filter(t => t.id !== id);
+        saveState();
+      }
+    }
+
+    function addNewStoreItem() {
+      const name = document.getElementById('new-item-name').value.trim();
+      const cost = parseInt(document.getElementById('new-item-cost').value);
+      if (!name || isNaN(cost) || cost <= 0) return alert('Заполните все поля!');
+      state.store.push({ id: Date.now(), name, cost });
+      document.getElementById('new-item-name').value = '';
+      saveState();
+    }
+
+    function deleteStoreItem(id) {
+      if (confirm('Удалить товар?')) {
+        state.store = state.store.filter(s => s.id !== id);
+        saveState();
+      }
+    }
+
+    /* --- CASINO GAMES --- */
+    function updateDiceStats() {
+      const chance = parseInt(document.getElementById('dice-chance').value);
+      document.getElementById('dice-chance-num').value = chance;
+      const mult = (100 / chance).toFixed(2);
+      const bet = parseInt(document.getElementById('bet-amount').value) || 0;
+      const winVal = Math.floor(bet * mult);
+      document.getElementById('dice-mult').innerText = `${mult}x`;
+      document.getElementById('dice-payout').innerText = `${winVal.toLocaleString()} 💵`;
+      document.getElementById('dice-chance').style.setProperty('--slider-pct', `${chance}%`);
+    }
+
+    function syncDiceInput(val) {
+      let num = parseInt(val);
+      if (isNaN(num)) num = 1;
+      if (num < 1) num = 1; if (num > 99) num = 99;
+      document.getElementById('dice-chance').value = num;
+      updateDiceStats();
+    }
+
+    function playDice() {
+      const bet = parseInt(document.getElementById('bet-amount').value);
+      const chance = parseInt(document.getElementById('dice-chance').value);
+      if (isNaN(bet) || bet <= 0 || bet > state.chips) return alert('Недостаточно Фишек!');
+
+      state.chips -= bet;
+      const roll = Math.random() * 100;
+      const mult = 100 / chance;
+      const winAmount = Math.floor(bet * mult);
+
+      if (roll <= chance) {
+        state.money += winAmount;
+        addHistory(`Dice: Победа (${roll.toFixed(1)} <= ${chance})`, `+${winAmount} 💵`, true);
+        alert(`Победа! Выпал ролл ${roll.toFixed(1)}. Выигрыш: ${winAmount} 💵.`);
+      } else {
+        addHistory(`Dice: Проиграл (${roll.toFixed(1)} > ${chance})`, `-${bet} 🟣`, false);
+        alert(`Неудача! Выпал ролл ${roll.toFixed(1)}.`);
+      }
+      generateProvablyFairSeed();
+      saveState();
+    }
+
+    /* CRASH */
+    let crashInterval = null, crashMultiplier = 1.00, crashBustPoint = 0, crashIsRunning = false;
+
+    function handleCrashAction() {
+      const btn = document.getElementById('crash-btn');
+      const bet = parseInt(document.getElementById('bet-amount').value);
+
+      if (!crashIsRunning) {
+        if (isNaN(bet) || bet <= 0 || bet > state.chips) return alert('Недостаточно Фишек!');
+        state.chips -= bet;
+        crashIsRunning = true;
+        crashMultiplier = 1.00;
+        crashBustPoint = parseFloat((Math.max(1.01, 99 / (100 - Math.random() * 99))).toFixed(2));
+        btn.innerText = 'Забрать W';
+        btn.className = 'btn btn-success';
+
+        crashInterval = setInterval(() => {
+          crashMultiplier += 0.03 + (crashMultiplier * 0.01);
+          document.getElementById('crash-mult').innerText = `${crashMultiplier.toFixed(2)}x`;
+          if (crashMultiplier >= crashBustPoint) {
+            clearInterval(crashInterval);
+            document.getElementById('crash-mult').innerText = `💥 BUST ${crashBustPoint.toFixed(2)}x`;
+            addHistory(`Crash: BUST на ${crashBustPoint.toFixed(2)}x`, `-${bet} 🟣`, false);
+            resetCrashUI();
+            saveState();
+          }
+        }, 100);
+      } else {
+        clearInterval(crashInterval);
+        const winAmount = Math.floor(bet * crashMultiplier);
+        state.money += winAmount;
+        addHistory(`Crash: Забрал на ${crashMultiplier.toFixed(2)}x`, `+${winAmount} 💵`, true);
+        alert(`Успех! Вы выиграли ${winAmount} 💵.`);
+        resetCrashUI();
+        saveState();
+      }
+    }
+
+    function resetCrashUI() {
+      crashIsRunning = false;
+      const btn = document.getElementById('crash-btn');
+      btn.innerText = 'Старт';
+      btn.className = 'btn btn-primary';
+      generateProvablyFairSeed();
+    }
+
+    /* MINES */
+    let minesGrid = [], minesActive = false, safeClicks = 0;
+
+    function startMinesGame() {
+      const bet = parseInt(document.getElementById('bet-amount').value);
+      const bombCount = parseInt(document.getElementById('mines-count').value);
+
+      if (isNaN(bet) || bet <= 0 || bet > state.chips) return alert('Недостаточно Фишек!');
+      if (bombCount < 1 || bombCount > 24) return alert('От 1 до 24 мин!');
+
+      state.chips -= bet;
+      minesActive = true;
+      safeClicks = 0;
+      minesGrid = Array(25).fill('gem');
+      let placed = 0;
+      while (placed < bombCount) {
+        const idx = Math.floor(Math.random() * 25);
+        if (minesGrid[idx] !== 'bomb') { minesGrid[idx] = 'bomb'; placed++; }
+      }
+
+      const gridEl = document.getElementById('mines-grid');
+      gridEl.innerHTML = '';
+      for (let i = 0; i < 25; i++) {
+        gridEl.innerHTML += `<div class="mine-cell" id="cell-${i}" onclick="clickMineCell(${i})">❓</div>`;
+      }
+
+      const btn = document.getElementById('mines-btn');
+      btn.innerText = 'Забрать Выигрыш';
+      btn.className = 'btn btn-success';
+      btn.onclick = cashoutMines;
+      saveState();
+    }
+
+    function clickMineCell(idx) {
+      if (!minesActive) return;
+      const cell = document.getElementById(`cell-${idx}`);
+      if (cell.classList.contains('revealed')) return;
+
+      cell.classList.add('revealed');
+      if (minesGrid[idx] === 'bomb') {
+        cell.innerText = '💣'; cell.classList.add('bomb');
+        minesActive = false;
+        alert('💥 БУМ!');
+        const bet = parseInt(document.getElementById('bet-amount').value);
+        addHistory('Mines: Взрыв', `-${bet} 🟣`, false);
+        resetMinesUI();
+        saveState();
+      } else {
+        cell.innerText = '💎'; cell.classList.add('gem');
+        safeClicks++;
+      }
+    }
+
+    function cashoutMines() {
+      if (!minesActive || safeClicks === 0) return alert('Откройте хотя бы 1 кристалл!');
+      const bet = parseInt(document.getElementById('bet-amount').value);
+      const bombCount = parseInt(document.getElementById('mines-count').value);
+      const mult = 1 + (safeClicks * (bombCount * 0.15));
+      const winAmount = Math.floor(bet * mult);
+
+      state.money += winAmount;
+      addHistory(`Mines: Забрал (${safeClicks} шт)`, `+${winAmount} 💵`, true);
+      alert(`Вы забираете ${winAmount} 💵.`);
+      minesActive = false;
+      resetMinesUI();
+      saveState();
+    }
+
+    function resetMinesUI() {
+      const btn = document.getElementById('mines-btn');
+      btn.innerText = 'Начать игру';
+      btn.className = 'btn btn-primary';
+      btn.onclick = startMinesGame;
+      generateProvablyFairSeed();
+    }
+
+    /* COINFLIP */
+    function playCoinflip(choice) {
+      const bet = parseInt(document.getElementById('bet-amount').value);
+      if (isNaN(bet) || bet <= 0 || bet > state.chips) return alert('Недостаточно Фишек!');
+
+      state.chips -= bet;
+      const outcome = Math.random() < 0.5 ? 'ОРЁЛ' : 'РЕШКА';
+      const coinEl = document.getElementById('coin-icon');
+      coinEl.innerText = '🌀';
+
+      setTimeout(() => {
+        coinEl.innerText = outcome === 'ОРЁЛ' ? '🪙' : '👑';
+        if (choice === outcome) {
+          const winAmount = bet * 2;
+          state.money += winAmount;
+          addHistory(`Coinflip: Победа (${outcome})`, `+${winAmount} 💵`, true);
+          alert(`Выпала ${outcome}! Вы выиграли ${winAmount} 💵.`);
+        } else {
+          addHistory(`Coinflip: Проиграл (${outcome})`, `-${bet} 🟣`, false);
+          alert(`Выпала ${outcome}.`);
+        }
+        generateProvablyFairSeed();
+        saveState();
+      }, 400);
+    }
+
+    /* ADMIN MODAL */
+    function openAdminModal() {
+      document.getElementById('admin-chips').value = state.chips;
+      document.getElementById('admin-money').value = state.money;
+      document.getElementById('admin-modal').style.display = 'flex';
+    }
+
+    function closeAdminModal() {
+      document.getElementById('admin-modal').style.display = 'none';
+    }
+
+    function saveAdminChanges() {
+      state.chips = parseInt(document.getElementById('admin-chips').value) || 0;
+      state.money = parseInt(document.getElementById('admin-money').value) || 0;
+      saveState();
+      closeAdminModal();
+    }
+
+    function resetAllData() {
+      if (confirm('Сбросить данные?')) {
+        localStorage.removeItem('cyber_economy_db');
+        state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        saveState();
+        closeAdminModal();
+      }
+    }
+
+    /* INIT */
+    document.getElementById('bet-amount').addEventListener('input', updateDiceStats);
+    generateProvablyFairSeed();
+    renderUI();
+  </script>
+</body>
+</html>
