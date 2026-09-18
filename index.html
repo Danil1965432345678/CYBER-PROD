@@ -18,6 +18,7 @@
       --accent-danger: #ef4444;
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
+      --thimble-speed: 300ms;
     }
 
     * {
@@ -267,7 +268,7 @@
     }
 
     input[type="number"], input[type="text"], select {
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.4);
       border: 1px solid var(--card-border);
       color: #fff;
       padding: 0.8rem 1rem;
@@ -275,11 +276,16 @@
       font-size: 1rem;
       font-family: 'JetBrains Mono', monospace;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, opacity 0.2s;
     }
 
-    input[type="number"]:focus, input[type="text"]:focus {
+    input[type="number"]:focus, input[type="text"]:focus, select:focus {
       border-color: var(--primary-chips);
+    }
+
+    select:disabled, input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     /* Buttons */
@@ -296,6 +302,12 @@
       letter-spacing: 0.5px;
     }
 
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
     .btn-sm {
       padding: 0.4rem 0.8rem;
       font-size: 0.85rem;
@@ -308,7 +320,7 @@
       box-shadow: 0 4px 20px var(--primary-chips-glow);
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 6px 24px var(--primary-chips-glow);
     }
@@ -359,6 +371,71 @@
     .mine-cell.bomb {
       background: rgba(239, 68, 68, 0.25);
       border-color: var(--accent-danger);
+    }
+
+    /* --- REALTIME ANIMATED THIMBLES --- */
+    .thimbles-stage {
+      position: relative;
+      width: 360px;
+      height: 150px;
+      margin: 1.5rem auto;
+      background: radial-gradient(circle at center, rgba(139, 92, 246, 0.18) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      border-radius: 20px;
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(139, 92, 246, 0.2);
+      overflow: hidden;
+    }
+
+    .thimble-wrapper {
+      position: absolute;
+      top: 30px;
+      left: 0;
+      width: 80px;
+      height: 90px;
+      cursor: pointer;
+      will-change: transform;
+      transition: transform var(--thimble-speed, 300ms) cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 2;
+    }
+
+    .thimble-box {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #3b0764 0%, #1e1b4b 60%, #0f172a 100%);
+      border: 2px solid #8b5cf6;
+      border-radius: 24px 24px 8px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      box-shadow: inset 0 4px 8px rgba(255, 255, 255, 0.15), 0 10px 25px rgba(0, 0, 0, 0.8);
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+    }
+
+    .thimble-box:hover {
+      border-color: #a78bfa;
+    }
+
+    .thimble-box.win-border {
+      border-color: var(--primary-money) !important;
+      box-shadow: inset 0 4px 8px rgba(255, 255, 255, 0.2), 0 0 25px var(--primary-money-glow) !important;
+    }
+
+    .thimble-box.lose-border {
+      border-color: var(--accent-danger) !important;
+      box-shadow: inset 0 4px 8px rgba(255, 255, 255, 0.2), 0 0 25px rgba(239, 68, 68, 0.4) !important;
+    }
+
+    .thimble-ball {
+      position: absolute;
+      bottom: 18px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 1.8rem;
+      pointer-events: none;
+      z-index: 1;
+      transition: opacity 0.2s ease;
     }
 
     /* List Items */
@@ -466,9 +543,7 @@
         align-items: center;
       }
 
-      .brand {
-        font-size: 1.2rem;
-      }
+      .brand { font-size: 1.2rem; }
 
       .balances {
         width: 100%;
@@ -502,6 +577,14 @@
         flex: 1 1 30%;
         text-align: center;
       }
+
+      .thimbles-stage {
+        width: 310px;
+      }
+
+      .thimble-wrapper {
+        width: 70px;
+      }
     }
   </style>
 </head>
@@ -527,12 +610,12 @@
 
   <!-- Navigation -->
   <nav>
-    <button class="nav-btn active" onclick="switchTab('casino', event)">🎰 Казино</button>
-    <button class="nav-btn" onclick="switchTab('buy-chips', event)">🪙 Покупка</button>
-    <button class="nav-btn" onclick="switchTab('tasks', event)">⚡ Задания</button>
-    <button class="nav-btn" onclick="switchTab('store', event)">🛒 Магазин</button>
-    <button class="nav-btn" onclick="switchTab('editor', event)">🛠️ Редактор</button>
-    <button class="nav-btn" onclick="switchTab('history', event)">📜 История</button>
+    <button class="nav-btn active" onclick="switchTab('casino', event)">🎰 Casino</button>
+    <button class="nav-btn" onclick="switchTab('buy-chips', event)">🪙 Buy Chips</button>
+    <button class="nav-btn" onclick="switchTab('tasks', event)">⚡ Tasks</button>
+    <button class="nav-btn" onclick="switchTab('store', event)">🛒 Store</button>
+    <button class="nav-btn" onclick="switchTab('editor', event)">🛠️ Editor</button>
+    <button class="nav-btn" onclick="switchTab('history', event)">📜 History</button>
   </nav>
 
   <!-- Main Container -->
@@ -546,6 +629,7 @@
           <div class="game-tab" onclick="switchGame('crash', event)">Crash</div>
           <div class="game-tab" onclick="switchGame('mines', event)">Minesweeper</div>
           <div class="game-tab" onclick="switchGame('coinflip', event)">Coinflip</div>
+          <div class="game-tab" onclick="switchGame('thimbles', event)">Thimbles</div>
         </div>
 
         <div class="input-group">
@@ -595,6 +679,41 @@
             <button class="btn btn-primary" onclick="playCoinflip('ОРЁЛ')">ОРЁЛ (2.00x)</button>
             <button class="btn btn-primary" onclick="playCoinflip('РЕШКА')">РЕШКА (2.00x)</button>
           </div>
+        </div>
+
+        <!-- GAME: REALTIME ANIMATED THIMBLES -->
+        <div id="game-thimbles" class="game-box" style="display:none; text-align:center">
+          <div class="input-group" style="max-width:320px; margin:0 auto 1rem;">
+            <label>Сложность тасования:</label>
+            <select id="thimbles-diff-select" onchange="updateThimblesDiffInfo()">
+              <option value="easy">Easy (1.25x • 4 ходов)</option>
+              <option value="medium" selected>Medium (2.00x • 7 ходов)</option>
+              <option value="hard">Hard (2.85x • 14 ходов)</option>
+            </select>
+          </div>
+
+          <div id="thimbles-status" style="font-weight:700; color:var(--accent-gold); margin-bottom:0.5rem; min-height:24px;">
+            Нажмите «Старт», чтобы начать тасование!
+          </div>
+
+          <!-- Interactive Stage -->
+          <div class="thimbles-stage">
+            <div class="thimble-ball" id="thimble-ball-0"></div>
+            <div class="thimble-ball" id="thimble-ball-1"></div>
+            <div class="thimble-ball" id="thimble-ball-2"></div>
+
+            <div class="thimble-wrapper" id="thimble-wrapper-0" onclick="pickThimble(0)">
+              <div class="thimble-box" id="thimble-box-0">🎩</div>
+            </div>
+            <div class="thimble-wrapper" id="thimble-wrapper-1" onclick="pickThimble(1)">
+              <div class="thimble-box" id="thimble-box-1">🎩</div>
+            </div>
+            <div class="thimble-wrapper" id="thimble-wrapper-2" onclick="pickThimble(2)">
+              <div class="thimble-box" id="thimble-box-2">🎩</div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="thimbles-start-btn" onclick="startThimblesGame()">Старт</button>
         </div>
 
         <div class="provably-fair">
@@ -798,7 +917,7 @@
       document.getElementById('money-balance').innerText = state.money.toLocaleString();
       document.getElementById('daily-count').innerText = state.dailyCompleted;
 
-      // Tasks (Always repeatable)
+      // Tasks
       const tasksContainer = document.getElementById('tasks-list');
       tasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
       state.tasks.forEach(t => {
@@ -888,6 +1007,7 @@
       document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
       document.getElementById(`game-${gameName}`).style.display = 'block';
       if (evt && evt.target) evt.target.classList.add('active');
+      if (gameName === 'thimbles') resetThimblesPositions();
     }
 
     function addHistory(details, amount, win = true) {
@@ -907,7 +1027,6 @@
 
     function updateBankExchange() {
       const input = parseInt(document.getElementById('bank-money-input').value) || 0;
-      // BANK RATE: 5 money = 1 chip
       const chipsOutput = Math.floor(input / 5);
       document.getElementById('bank-chips-output').innerText = `${chipsOutput} 🟣`;
     }
@@ -975,7 +1094,7 @@
 
     function spinBuyChipsWheel() {
       if (buyWheelSpinning) return;
-      const cost = 30; // 30 money per spin
+      const cost = 30;
       if (state.money < cost) return alert('Недостаточно Денег! Нужно 30 💵.');
 
       state.money -= cost;
@@ -1002,7 +1121,6 @@
         btn.style.opacity = '1';
 
         const sector = buyWheelSectors[winningIdx];
-        // WHEEL BASE RATE: 3 money = 1 chip baseline (So 30 money = 10 base chips)
         const baseChips = Math.floor(cost / 3);
         const wonChips = Math.floor(baseChips * sector.mult);
 
@@ -1264,6 +1382,179 @@
       }, 400);
     }
 
+    /* --- REALTIME ANIMATED THIMBLES ENGINE --- */
+    let thimblesSlots = [0, 1, 2];
+    let thimblesWinningCup = 0;
+    let thimblesState = 'idle'; // 'idle', 'showing', 'shuffling', 'guessing', 'ended'
+    let activeThimblesCfg = null;
+
+    function getThimbleSlotX(slotIdx) {
+      const stageWidth = document.querySelector('.thimbles-stage').clientWidth || 360;
+      const cupWidth = stageWidth < 350 ? 70 : 80;
+      const availableSpace = stageWidth - (cupWidth * 3);
+      const margin = availableSpace / 4;
+      return margin + slotIdx * (cupWidth + margin);
+    }
+
+    function updateThimblePos(cupId, slotIdx, isRaised = false) {
+      const el = document.getElementById(`thimble-wrapper-${cupId}`);
+      if (!el) return;
+      const x = getThimbleSlotX(slotIdx);
+      const y = isRaised ? -45 : 0;
+      el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+      // Синхронизируем визуальный контейнер мяча со слотом
+      const ballEl = document.getElementById(`thimble-ball-${cupId}`);
+      if (ballEl) {
+        ballEl.style.left = `${x}px`;
+        ballEl.style.width = `${document.querySelector('.thimble-wrapper')?.clientWidth || 80}px`;
+      }
+    }
+
+    function resetThimblesPositions() {
+      thimblesSlots = [0, 1, 2];
+      for (let i = 0; i < 3; i++) {
+        const box = document.getElementById(`thimble-box-${i}`);
+        if (box) box.className = 'thimble-box';
+        const ball = document.getElementById(`thimble-ball-${i}`);
+        if (ball) {
+          ball.innerText = '';
+          ball.style.opacity = '0';
+        }
+        updateThimblePos(i, i, false);
+      }
+    }
+
+    function updateThimblesDiffInfo() {
+      if (thimblesState !== 'idle') return;
+      document.getElementById('thimbles-status').innerText = 'Нажмите «Старт», чтобы начать тасование!';
+    }
+
+    async function startThimblesGame() {
+      if (thimblesState !== 'idle') return;
+
+      const bet = parseInt(document.getElementById('bet-amount').value);
+      if (isNaN(bet) || bet <= 0 || bet > state.chips) return alert('Недостаточно Фишек!');
+
+      const diffSelect = document.getElementById('thimbles-diff-select');
+      const startBtn = document.getElementById('thimbles-start-btn');
+      const diffKey = diffSelect.value;
+
+      const configs = {
+        easy: { mult: 1.25, swaps: 4, speed: 700 },
+        medium: { mult: 2.00, swaps: 7, speed: 230 },
+        hard: { mult: 2.85, swaps: 14, speed: 85 }
+      };
+
+      // Блокируем выбор сложности и кнопку Старт
+      activeThimblesCfg = { ...configs[diffKey], key: diffKey };
+      diffSelect.disabled = true;
+      startBtn.disabled = true;
+
+      state.chips -= bet;
+      saveState();
+
+      thimblesState = 'showing';
+
+      // 1. Сброс позиций и показ мячика
+      resetThimblesPositions();
+      thimblesWinningCup = Math.floor(Math.random() * 3);
+
+      const winBallEl = document.getElementById(`thimble-ball-${thimblesWinningCup}`);
+      winBallEl.innerText = '⚾';
+      winBallEl.style.opacity = '1';
+
+      document.getElementById('thimbles-status').innerText = 'Запоминайте, где мячик... ⚾';
+
+      // Подъём напёрстков для демонстрации мяча
+      document.documentElement.style.setProperty('--thimble-speed', '400ms');
+      for (let i = 0; i < 3; i++) {
+        updateThimblePos(i, thimblesSlots[i], true);
+      }
+
+      await new Promise(r => setTimeout(r, 1200));
+
+      // 2. Опускаем напёрстки и ПОЛНОСТЬЮ ПРЯЧЕМ МЯЧ
+      document.getElementById('thimbles-status').innerText = 'Тасуем напёрстки... 🌀';
+      for (let i = 0; i < 3; i++) {
+        updateThimblePos(i, thimblesSlots[i], false);
+      }
+
+      await new Promise(r => setTimeout(r, 450));
+
+      // Полностью стираем мяч из видимости перед тасованием
+      for (let i = 0; i < 3; i++) {
+        const b = document.getElementById(`thimble-ball-${i}`);
+        b.innerText = '';
+        b.style.opacity = '0';
+      }
+
+      // 3. Тасование (без мяча внутри DOM)
+      thimblesState = 'shuffling';
+      document.documentElement.style.setProperty('--thimble-speed', `${activeThimblesCfg.speed}ms`);
+
+      for (let step = 0; step < activeThimblesCfg.swaps; step++) {
+        let c1 = Math.floor(Math.random() * 3);
+        let c2 = (c1 + 1 + Math.floor(Math.random() * 2)) % 3;
+
+        let temp = thimblesSlots[c1];
+        thimblesSlots[c1] = thimblesSlots[c2];
+        thimblesSlots[c2] = temp;
+
+        updateThimblePos(c1, thimblesSlots[c1], false);
+        updateThimblePos(c2, thimblesSlots[c2], false);
+
+        await new Promise(r => setTimeout(r, activeThimblesCfg.speed + 25));
+      }
+
+      // 4. Ожидание выбора игрока
+      thimblesState = 'guessing';
+      document.getElementById('thimbles-status').innerText = 'Где мячик? Выбирайте стаканчик!';
+    }
+
+    async function pickThimble(chosenCupId) {
+      if (thimblesState !== 'guessing') return;
+      thimblesState = 'ended';
+
+      const bet = parseInt(document.getElementById('bet-amount').value);
+      document.documentElement.style.setProperty('--thimble-speed', '400ms');
+
+      // Показываем мяч ТОЛЬКО ТЕПЕРЬ под реальным стаканчиком
+      const realBallEl = document.getElementById(`thimble-ball-${thimblesWinningCup}`);
+      realBallEl.innerText = '⚾';
+      realBallEl.style.opacity = '1';
+
+      // Поднимаем все стаканчики
+      for (let i = 0; i < 3; i++) {
+        updateThimblePos(i, thimblesSlots[i], true);
+      }
+
+      const isWin = (chosenCupId === thimblesWinningCup);
+      const statusEl = document.getElementById('thimbles-status');
+
+      if (isWin) {
+        const winAmount = Math.floor(bet * activeThimblesCfg.mult);
+        state.money += winAmount;
+        addHistory(`Thimbles (${activeThimblesCfg.key}): Угадал!`, `+${winAmount} 💵`, true);
+        statusEl.innerText = `🎉 Вы угадали! Выигрыш: ${winAmount} 💵`;
+        document.getElementById(`thimble-box-${chosenCupId}`).classList.add('win-border');
+      } else {
+        addHistory(`Thimbles (${activeThimblesCfg.key}): Проиграл`, `-${bet} 🟣`, false);
+        statusEl.innerText = `❌ Не угадали! Мячик был под другим стаканчиком.`;
+        document.getElementById(`thimble-box-${chosenCupId}`).classList.add('lose-border');
+        document.getElementById(`thimble-box-${thimblesWinningCup}`).classList.add('win-border');
+      }
+
+      generateProvablyFairSeed();
+      saveState();
+
+      setTimeout(() => {
+        document.getElementById('thimbles-start-btn').disabled = false;
+        document.getElementById('thimbles-diff-select').disabled = false;
+        thimblesState = 'idle';
+      }, 1500);
+    }
+
     /* ADMIN MODAL */
     function openAdminModal() {
       document.getElementById('admin-chips').value = state.chips;
@@ -1293,6 +1584,9 @@
 
     /* INIT */
     document.getElementById('bet-amount').addEventListener('input', updateDiceStats);
+    window.addEventListener('resize', () => {
+      for (let i = 0; i < 3; i++) updateThimblePos(i, thimblesSlots[i], false);
+    });
     generateProvablyFairSeed();
     renderUI();
   </script>
