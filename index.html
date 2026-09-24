@@ -741,7 +741,7 @@
         <!-- Колесо с указателем -->
         <div style="position:relative; width:280px; height:280px; margin:0 auto 1.5rem;">
           <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent; border-top:20px solid var(--accent-gold); z-index:10; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></div>
-          <canvas id="wheel-game-canvas" width="280" height="280" style="border-radius:50%; box-shadow: 0 0 25px rgba(139, 92, 246, 0.3); transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1);"></canvas>
+          <canvas id="wheel-game-canvas" width="280" height="280" style="border-radius:50%; box-shadow: 0 0 25px rgba(139, 92, 246, 0.3); transition: transform 7s cubic-bezier(0.12, 0.8, 0.2, 1);"></canvas>
         </div>
 
         <!-- Плашки выбора цвета -->
@@ -1150,7 +1150,7 @@ function switchGame(gameName, evt) {
       const targetSectorCenterDeg = (winningIdx * sectorArc) + (sectorArc / 2);
       const stopDeg = 360 - targetSectorCenterDeg - 90;
 
-      const extraRotations = (5 + Math.floor(Math.random() * 3)) * 360;
+      const extraRotations = (8 + Math.floor(Math.random() * 4)) * 360;
       const newRotation = buyWheelRotation + extraRotations + (stopDeg - (buyWheelRotation % 360));
       buyWheelRotation = newRotation;
 
@@ -1823,7 +1823,7 @@ function spinWheelGame() {
 
     generateProvablyFairSeed();
     saveState();
-  }, 4000);
+  }, 7000);
 }
 
 
