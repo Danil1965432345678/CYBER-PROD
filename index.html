@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CyberCasino & Task Hub</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="icon" rel="apple-touch-icon" href="Gemini_Generated_Image_os5fygos5fygos5f.png">
+  <link rel="icon" rel="apple-touch-icon" href="logo.png">
   <style>
     :root {
       --bg-color: #0b0d14;
@@ -595,7 +595,7 @@
   <header>
     <div class="brand">🎰 CYBER-PROD</div>
     <div class="balances">
-      <div class="stat-badge">Выполнено сегодня: <span id="daily-count">0</span></div>
+      <div class="stat-badge">Выполнено заданий за все время: <span id="daily-count">0</span></div>
       <div class="balance-pill chips">
         <span>🟣</span>
         <span id="chips-balance">0</span>
@@ -631,6 +631,7 @@
           <div class="game-tab" onclick="switchGame('mines', event)">Minesweeper</div>
           <div class="game-tab" onclick="switchGame('coinflip', event)">Coinflip</div>
           <div class="game-tab" onclick="switchGame('thimbles', event)">Thimbles</div>
+          <div class="game-tab" onclick="switchGame('wheel', event)">Wheel</div>
         </div>
 
         <div class="input-group">
@@ -720,9 +721,39 @@
         <div class="provably-fair">
           🔐 SHA-256 Seed Hash: <span id="pf-hash">Инициализация...</span>
         </div>
-      </div>
-    </div>
+            <!-- GAME: WHEEL OF FORTUNE -->
+      <div id="game-wheel" class="game-box" style="display:none; text-align:center">
+        <div class="input-group" style="max-width:320px; margin:0 auto 1rem;">
+          <label>Количество цветов (Уровень риска):</label>
+          <select id="wheel-count-select" onchange="initWheelGame()">
+            <option value="2">2 цвета (x2)</option>
+            <option value="3">3 цвета (x3)</option>
+            <option value="4" selected>4 цвета (x4)</option>
+            <option value="5">5 цветов (x5)</option>
+            <option value="6">6 цветов (x6)</option>
+            <option value="7">7 цветов (x7)</option>
+            <option value="8">8 цветов (x8)</option>
+            <option value="9">9 цветов (x9)</option>
+            <option value="10">10 цветов (x10)</option>
+          </select>
+        </div>
 
+        <!-- Колесо с указателем -->
+        <div style="position:relative; width:280px; height:280px; margin:0 auto 1.5rem;">
+          <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent; border-top:20px solid var(--accent-gold); z-index:10; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></div>
+          <canvas id="wheel-game-canvas" width="280" height="280" style="border-radius:50%; box-shadow: 0 0 25px rgba(139, 92, 246, 0.3); transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1);"></canvas>
+        </div>
+
+        <!-- Плашки выбора цвета -->
+        <div style="margin-bottom: 1.5rem;">
+          <label style="display:block; font-size:0.85rem; color:var(--text-muted); margin-bottom:0.6rem;">Выберите цвет ставки:</label>
+          <div id="wheel-color-tiles"></div>
+        </div>
+
+        <button class="btn btn-primary" id="wheel-spin-btn" onclick="spinWheelGame()">КРУТИТЬ</button>
+      </div>
+  </div>
+    </div>
     <!-- TAB 2: BUY CHIPS (Convert Money -> Chips) -->
     <div id="tab-buy-chips" class="tab-content">
       <div class="card">
@@ -852,7 +883,7 @@
     <button class="admin-trigger" onclick="openAdminModal()">⚙️ Админ</button>
   </footer>
 
-  <!-- Admin Modal -->
+ <!-- Admin Modal -->
   <div class="modal-overlay" id="admin-modal">
     <div class="modal">
       <h3 style="margin-bottom:1rem; color:var(--accent-gold)">Панель Админа</h3>
@@ -868,7 +899,16 @@
         <button class="btn btn-success" onclick="saveAdminChanges()">Сохранить</button>
         <button class="btn btn-danger" onclick="closeAdminModal()">Отмена</button>
       </div>
+
       <hr style="margin:1rem 0; border-color:var(--card-border)">
+
+      <!-- КНОПКИ ВЫГРУЗКИ И ЗАГРУЗКИ ДАННЫХ -->
+      <div style="display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1rem;">
+        <button class="btn btn-primary" style="font-size:0.85rem; padding:0.7rem;" onclick="exportDataToFile()">💾 Сохранить всё в файл (.json)</button>
+        <button class="btn btn-success" style="font-size:0.85rem; padding:0.7rem;" onclick="document.getElementById('import-file-input').click()">📂 Загрузить из файла (.json)</button>
+        <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importDataFromFile(event)">
+      </div>
+
       <button class="btn btn-danger" style="font-size:0.8rem" onclick="resetAllData()">Сбросить данные</button>
     </div>
   </div>
@@ -1003,13 +1043,14 @@
       if (tabName === 'buy-chips') drawBuyWheel();
     }
 
-    function switchGame(gameName, evt) {
-      document.querySelectorAll('.game-box').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
-      document.getElementById(`game-${gameName}`).style.display = 'block';
-      if (evt && evt.target) evt.target.classList.add('active');
-      if (gameName === 'thimbles') resetThimblesPositions();
-    }
+function switchGame(gameName, evt) {
+  document.querySelectorAll('.game-box').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(`game-${gameName}`).style.display = 'block';
+  if (evt && evt.target) evt.target.classList.add('active');
+  if (gameName === 'thimbles') resetThimblesPositions();
+  if (gameName === 'wheel') initWheelGame(); // Инициализация колеса
+}
 
     function addHistory(details, amount, win = true) {
       const time = new Date().toLocaleTimeString();
@@ -1589,6 +1630,240 @@
       for (let i = 0; i < 3; i++) updateThimblePos(i, thimblesSlots[i], false);
     });
     generateProvablyFairSeed();
+/* ==========================================
+   1. КОЛЕСО ФОРТУНЫ
+   ========================================== */
+
+// Первые два цвета строго Красный (#ef4444) и Чёрный (#18181b)
+const WHEEL_PALETTE = [
+  '#ef4444', '#18181b', '#3b82f6', '#10b981', '#f59e0b',
+  '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#a855f7'
+];
+
+// Карта соответствия: количество выбранных цветов -> общее количество секторов на колесе
+const WHEEL_SECTORS_MAP = {
+  2: 10, // 2 цвета -> 10 секторов
+  3: 9,  // 3 цвета -> 9 секторов
+  4: 12, // 4 цвета -> 12 секторов
+  5: 10, // 5 цветов -> 10 секторов
+  6: 12, // 6 цветов -> 12 секторов
+  7: 14, // 7 цветов -> 14 секторов
+  8: 16, // 8 цветов -> 16 секторов
+  9: 9,  // 9 цветов -> 9 секторов
+  10: 10 // 10 цветов -> 10 секторов
+};
+
+let selectedWheelColorIdx = 0;
+let wheelGameSpinning = false;
+let wheelGameRotation = 0;
+
+function initWheelGame() {
+  const count = parseInt(document.getElementById('wheel-count-select').value) || 4;
+  if (selectedWheelColorIdx >= count) {
+    selectedWheelColorIdx = 0;
+  }
+  drawWheelGame();
+  renderWheelTiles();
+}
+
+function renderWheelTiles() {
+  const count = parseInt(document.getElementById('wheel-count-select').value) || 4;
+  const container = document.getElementById('wheel-color-tiles');
+  if (!container) return;
+
+  container.innerHTML = '';
+  
+  // Управление сеткой в зависимости от кол-ва цветов
+  if (count <= 4) {
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.gap = '12px';
+  } else {
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(5, 1fr)';
+    container.style.gap = '8px';
+    container.style.maxWidth = '360px';
+    container.style.margin = '0 auto';
+  }
+
+  for (let i = 0; i < count; i++) {
+    const tile = document.createElement('div');
+    const color = WHEEL_PALETTE[i];
+    const isSelected = (i === selectedWheelColorIdx);
+
+    tile.style.backgroundColor = color;
+    tile.style.borderRadius = '10px';
+    tile.style.cursor = 'pointer';
+    tile.style.transition = 'all 0.2s ease';
+    tile.style.display = 'flex';
+    tile.style.alignItems = 'center';
+    tile.style.justifyContent = 'center';
+    tile.style.fontWeight = 'bold';
+    tile.style.color = '#fff';
+    tile.style.textShadow = '0 1px 3px rgba(0,0,0,0.8)';
+    tile.innerText = `x${count}`;
+
+    if (count <= 4) {
+      tile.style.width = '70px';
+      tile.style.height = '70px';
+      tile.style.fontSize = '1.1rem';
+    } else {
+      tile.style.width = '100%';
+      tile.style.height = '48px';
+      tile.style.fontSize = '0.85rem';
+    }
+
+    if (isSelected) {
+      tile.style.border = '3px solid #ffffff';
+      tile.style.boxShadow = `0 0 15px ${color}, inset 0 0 10px rgba(255,255,255,0.5)`;
+      tile.style.transform = 'scale(1.08)';
+    } else {
+      tile.style.border = '2px solid rgba(255,255,255,0.2)';
+      tile.style.opacity = '0.75';
+    }
+
+    tile.onclick = () => {
+      if (wheelGameSpinning) return;
+      selectedWheelColorIdx = i;
+      renderWheelTiles();
+    };
+
+    container.appendChild(tile);
+  }
+}
+
+function drawWheelGame() {
+  const canvas = document.getElementById('wheel-game-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  const count = parseInt(document.getElementById('wheel-count-select').value) || 4;
+  const totalSectors = WHEEL_SECTORS_MAP[count] || count;
+  
+  const arc = (2 * Math.PI) / totalSectors;
+  const radius = canvas.width / 2;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < totalSectors; i++) {
+    // Вычисляем индекс цвета с поочерёдным циклическим чередованием
+    const colorIdx = i % count;
+    const angle = i * arc;
+
+    ctx.beginPath();
+    ctx.fillStyle = WHEEL_PALETTE[colorIdx];
+    ctx.moveTo(radius, radius);
+    ctx.arc(radius, radius, radius, angle, angle + arc);
+    ctx.lineTo(radius, radius);
+    ctx.fill();
+    ctx.strokeStyle = '#0b0d14';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(radius, radius);
+    ctx.rotate(angle + arc / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 14px JetBrains Mono';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 4;
+    ctx.fillText(`x${count}`, radius - 15, 5);
+    ctx.restore();
+  }
+}
+
+function spinWheelGame() {
+  if (wheelGameSpinning) return;
+  const bet = parseInt(document.getElementById('bet-amount').value);
+  if (isNaN(bet) || bet <= 0 || bet > state.chips) return alert('Недостаточно Фишек!');
+
+  const count = parseInt(document.getElementById('wheel-count-select').value) || 4;
+  const totalSectors = WHEEL_SECTORS_MAP[count] || count;
+  
+  state.chips -= bet;
+  wheelGameSpinning = true;
+
+  const btn = document.getElementById('wheel-spin-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+
+  // Выбираем случайный сектор из общего числа секторов
+  const winningSectorIdx = Math.floor(Math.random() * totalSectors);
+  const sectorArcDeg = 360 / totalSectors;
+  const targetSectorCenterDeg = (winningSectorIdx * sectorArcDeg) + (sectorArcDeg / 2);
+  
+  // Указатель сверху находится на 270 градусах в холсте
+  const stopDeg = (270 - targetSectorCenterDeg + 360) % 360;
+
+  const extraRotations = (5 + Math.floor(Math.random() * 3)) * 360;
+  const newRotation = wheelGameRotation + extraRotations + ((stopDeg - (wheelGameRotation % 360) + 360) % 360);
+  wheelGameRotation = newRotation;
+
+  const canvas = document.getElementById('wheel-game-canvas');
+  canvas.style.transform = `rotate(${wheelGameRotation}deg)`;
+
+  setTimeout(() => {
+    wheelGameSpinning = false;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+
+    // Цвет выпавшего сектора определяет победу
+    const winningColorIdx = winningSectorIdx % count;
+
+    if (winningColorIdx === selectedWheelColorIdx) {
+      const winAmount = bet * count;
+      state.money += winAmount;
+      addHistory(`Колесо Фортуны (x${count}): Победа!`, `+${winAmount} 💵`, true);
+      alert(`🎉 ПОБЕДА! Колесо остановилось на вашем цвете!\nВы выиграли ${winAmount} 💵 (${bet} 🟣 x${count}).`);
+    } else {
+      addHistory(`Колесо Фортуны (x${count}): Проиграл`, `-${bet} 🟣`, false);
+      alert(`❌ Увы, стрелка остановилась на другом цвете.`);
+    }
+
+    generateProvablyFairSeed();
+    saveState();
+  }, 4000);
+}
+
+
+/* ==========================================
+   2. ВЫГРУЗКА И ЗАГРУЗКА ДАННЫХ (JSON)
+   ========================================== */
+function exportDataToFile() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  const dateStr = new Date().toISOString().slice(0, 10);
+  downloadAnchor.setAttribute("download", `cyber_casino_backup_${dateStr}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+}
+
+function importDataFromFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedState = JSON.parse(e.target.result);
+      if (typeof importedState === 'object' && importedState !== null) {
+        state = Object.assign({}, DEFAULT_STATE, importedState);
+        saveState();
+        closeAdminModal();
+        alert('✅ Все данные приложения (баланс, задачи, магазин) успешно восстановлены!');
+      } else {
+        alert('❌ Ошибка: Файл содержит некорректный формат данных!');
+      }
+    } catch (err) {
+      alert('❌ Ошибка при чтении файла JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // Сброс выбранного файла
+}
     renderUI();
   </script>
 </body>
