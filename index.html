@@ -958,25 +958,32 @@
       document.getElementById('money-balance').innerText = state.money.toLocaleString();
       document.getElementById('daily-count').innerText = state.dailyCompleted;
 
-      // Tasks
-      const tasksContainer = document.getElementById('tasks-list');
-      tasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
-      state.tasks.forEach(t => {
-        tasksContainer.innerHTML += `
-          <div class="item-row">
-            <div>
-              <span class="badge badge-${t.diff}">${t.diff}</span>
-              <strong style="margin-left:8px">${t.name}</strong>
-            </div>
-            <div style="display:flex; align-items:center; gap:1rem">
-              <span style="color:var(--primary-chips); font-family:'JetBrains Mono'; font-weight:700">+${t.reward} 🟣</span>
-              <button class="btn btn-success btn-sm" onclick="completeTask(${t.id})">
-                Завершить
-              </button>
-            </div>
-          </div>
-        `;
-      });
+// Tasks
+const tasksContainer = document.getElementById('tasks-list');
+tasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
+state.tasks.forEach(t => {
+  const lastTimeStr = formatTaskDate(t.lastCompleted);
+  
+  tasksContainer.innerHTML += `
+    <div class="item-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+      <div style="font-size:0.75rem; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">
+        🕒 Последнее выполнение: <span style="color:var(--accent-gold); font-weight:600;">${lastTimeStr}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+        <div>
+          <span class="badge badge-${t.diff}">${t.diff}</span>
+          <strong style="margin-left:8px">${t.name}</strong>
+        </div>
+        <div style="display:flex; align-items:center; gap:1rem">
+          <span style="color:var(--primary-chips); font-family:'JetBrains Mono'; font-weight:700">+${t.reward} 🟣</span>
+          <button class="btn btn-success btn-sm" onclick="completeTask(${t.id})">
+            Завершить
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+});
 
       // Store
       const storeContainer = document.getElementById('store-list');
@@ -1179,6 +1186,7 @@ function switchGame(gameName, evt) {
     function completeTask(id) {
       const task = state.tasks.find(t => t.id === id);
       if (task) {
+        task.lastCompleted = Date.now();
         state.chips += task.reward;
         state.dailyCompleted += 1;
         addHistory(`Выполнено задание: "${task.name}"`, `+${task.reward} 🟣`, true);
@@ -1911,6 +1919,29 @@ function importDataFromFile(event) {
   };
   reader.readAsText(file);
   event.target.value = ''; // Сброс выбранного файла
+}
+function formatTaskDate(timestamp) {
+  if (!timestamp) return 'Ещё не выполнялось';
+
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  // Сбрасываем время до 00:00:00 для точного сравнения дней
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterdayStart = todayStart - 86400000;
+  const targetTime = date.getTime();
+
+  const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  if (targetTime >= todayStart) {
+    return `Сегодня в ${timeStr}`;
+  } else if (targetTime >= yesterdayStart) {
+    return `Вчера в ${timeStr}`;
+  } else {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${day}.${month} в ${timeStr}`;
+  }
 }
     renderUI();
   </script>
