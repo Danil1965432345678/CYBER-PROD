@@ -1631,7 +1631,7 @@ function switchGame(gameName, evt) {
     });
     generateProvablyFairSeed();
 /* ==========================================
-   1. КОЛЕСО ФОРТУНЫ
+   1. КОЛЕСО ФОРТУНЫ (Интерактивное с кнопкой "Остановить")
    ========================================== */
 
 // Первые два цвета строго Красный (#ef4444) и Чёрный (#18181b)
@@ -1640,7 +1640,7 @@ const WHEEL_PALETTE = [
   '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#a855f7'
 ];
 
-// Карта соответствия: количество выбранных цветов -> общее количество секторов на колесе
+// Карта соответствия: количество выбранных цветов -> общее количество секторов
 const WHEEL_SECTORS_MAP = {
   2: 10, // 2 цвета -> 10 секторов
   3: 9,  // 3 цвета -> 9 секторов
@@ -1654,14 +1654,30 @@ const WHEEL_SECTORS_MAP = {
 };
 
 let selectedWheelColorIdx = 0;
-let wheelGameSpinning = false;
 let wheelGameRotation = 0;
+let wheelSpinningState = 'idle'; // 'idle' (стоит), 'spinning' (крутится), 'stopping' (замедляется)
+let wheelAnimFrameId = null;
+const currentSpinSpeed = 16; // Скорость постоянного вращения (град/кадр)
 
 function initWheelGame() {
   const count = parseInt(document.getElementById('wheel-count-select').value) || 4;
   if (selectedWheelColorIdx >= count) {
     selectedWheelColorIdx = 0;
   }
+
+  // Сброс состояния, если меняют режим во время вращения
+  if (wheelSpinningState !== 'idle') {
+    if (wheelAnimFrameId) cancelAnimationFrame(wheelAnimFrameId);
+    wheelSpinningState = 'idle';
+    const btn = document.getElementById('wheel-spin-btn');
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.innerText = 'КРУТИТЬ 🚀';
+      btn.style.backgroundColor = '';
+    }
+  }
+
   drawWheelGame();
   renderWheelTiles();
 }
@@ -1673,7 +1689,6 @@ function renderWheelTiles() {
 
   container.innerHTML = '';
   
-  // Управление сеткой в зависимости от кол-ва цветов
   if (count <= 4) {
     container.style.display = 'flex';
     container.style.justifyContent = 'center';
@@ -1723,7 +1738,7 @@ function renderWheelTiles() {
     }
 
     tile.onclick = () => {
-      if (wheelGameSpinning) return;
+      if (wheelSpinningState !== 'idle') return;
       selectedWheelColorIdx = i;
       renderWheelTiles();
     };
@@ -1746,7 +1761,6 @@ function drawWheelGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (let i = 0; i < totalSectors; i++) {
-    // Вычисляем индекс цвета с поочерёдным циклическим чередованием
     const colorIdx = i % count;
     const angle = i * arc;
 
@@ -1774,42 +1788,70 @@ function drawWheelGame() {
 }
 
 function spinWheelGame() {
-  if (wheelGameSpinning) return;
+  const btn = document.getElementById('wheel-spin-btn');
+  if (!btn) return;
+
+  if (wheelSpinningState === 'idle') {
+    startWheelSpin(btn);
+  } else if (wheelSpinningState === 'spinning') {
+    stopWheelSpin(btn);
+  }
+}
+
+function startWheelSpin(btn) {
   const bet = parseInt(document.getElementById('bet-amount').value);
   if (isNaN(bet) || bet <= 0 || bet > state.chips) return alert('Недостаточно Фишек!');
 
-  const count = parseInt(document.getElementById('wheel-count-select').value) || 4;
-  const totalSectors = WHEEL_SECTORS_MAP[count] || count;
-  
   state.chips -= bet;
-  wheelGameSpinning = true;
+  wheelSpinningState = 'spinning';
 
-  const btn = document.getElementById('wheel-spin-btn');
-  btn.disabled = true;
-  btn.style.opacity = '0.5';
-
-  // Выбираем случайный сектор из общего числа секторов
-  const winningSectorIdx = Math.floor(Math.random() * totalSectors);
-  const sectorArcDeg = 360 / totalSectors;
-  const targetSectorCenterDeg = (winningSectorIdx * sectorArcDeg) + (sectorArcDeg / 2);
-  
-  // Указатель сверху находится на 270 градусах в холсте
-  const stopDeg = (270 - targetSectorCenterDeg + 360) % 360;
-
-  const extraRotations = (5 + Math.floor(Math.random() * 3)) * 360;
-  const newRotation = wheelGameRotation + extraRotations + ((stopDeg - (wheelGameRotation % 360) + 360) % 360);
-  wheelGameRotation = newRotation;
+  btn.innerText = 'ОСТАНОВИТЬ 🛑';
+  btn.style.backgroundColor = '#ef4444';
 
   const canvas = document.getElementById('wheel-game-canvas');
-  canvas.style.transform = `rotate(${wheelGameRotation}deg)`;
+  canvas.style.transition = 'none';
+
+  function animate() {
+    wheelGameRotation = (wheelGameRotation + currentSpinSpeed) % 360;
+    canvas.style.transform = `rotate(${wheelGameRotation}deg)`;
+    wheelAnimFrameId = requestAnimationFrame(animate);
+  }
+
+  wheelAnimFrameId = requestAnimationFrame(animate);
+}
+
+function stopWheelSpin(btn) {
+  wheelSpinningState = 'stopping';
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.innerText = 'Замедление...';
+
+  if (wheelAnimFrameId) {
+    cancelAnimationFrame(wheelAnimFrameId);
+  }
+
+  const canvas = document.getElementById('wheel-game-canvas');
+  
+  // Добавляем занос (3-6 оборотов + рандомный угол до градуса)
+  const extraDegrees = (3 + Math.floor(Math.random() * 4)) * 360 + (Math.random() * 360);
+  const finalTargetRotation = wheelGameRotation + extraDegrees;
+
+  canvas.style.transition = 'transform 4s cubic-bezier(0.1, 0.8, 0.15, 1)';
+  canvas.style.transform = `rotate(${finalTargetRotation}deg)`;
+  
+  wheelGameRotation = finalTargetRotation;
 
   setTimeout(() => {
-    wheelGameSpinning = false;
-    btn.disabled = false;
-    btn.style.opacity = '1';
+    const count = parseInt(document.getElementById('wheel-count-select').value) || 4;
+    const totalSectors = WHEEL_SECTORS_MAP[count] || count;
+    const sectorArcDeg = 360 / totalSectors;
 
-    // Цвет выпавшего сектора определяет победу
+    // Вычисляем сектор под верхним указателем (270°)
+    const normalizedAngle = (270 - (finalTargetRotation % 360) + 360) % 360;
+    const winningSectorIdx = Math.floor(normalizedAngle / sectorArcDeg) % totalSectors;
     const winningColorIdx = winningSectorIdx % count;
+
+    const bet = parseInt(document.getElementById('bet-amount').value);
 
     if (winningColorIdx === selectedWheelColorIdx) {
       const winAmount = bet * count;
@@ -1821,9 +1863,15 @@ function spinWheelGame() {
       alert(`❌ Увы, стрелка остановилась на другом цвете.`);
     }
 
+    wheelSpinningState = 'idle';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.innerText = 'КРУТИТЬ 🚀';
+    btn.style.backgroundColor = '';
+
     generateProvablyFairSeed();
     saveState();
-  }, 7000);
+  }, 4000);
 }
 
 
