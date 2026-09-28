@@ -634,15 +634,16 @@
           <div class="game-tab" onclick="switchGame('wheel', event)">Wheel</div>
         </div>
 
-          <div class="input-group">
+           <div class="input-group">
           <label>Ставка (в Фишках 🟣):</label>
-          <div style="display: flex; gap: 0.5rem; align-items: center;">
-            <input type="number" id="bet-amount" min="1" value="100" style="flex: 1;">
-            <button type="button" class="btn btn-sm btn-primary" style="white-space: nowrap; padding: 0.8rem;" onclick="applyRecommendedBet()" title="Вставить рекомендуемую ставку">
+          <div style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
+            <input type="number" id="bet-amount" min="1" value="100" style="flex: 1; min-width: 0;">
+            <button type="button" class="btn btn-sm btn-primary" style="white-space: nowrap; padding: 0.6rem 0.75rem; font-size: 0.85rem; flex-shrink: 0;" onclick="applyRecommendedBet()" title="Вставить рекомендуемую ставку">
               💡 10%: <span id="rec-bet-val">0</span> 🟣
             </button>
           </div>
         </div>
+
 
         <!-- GAME: DICE -->
         <div id="game-dice" class="game-box">
