@@ -634,9 +634,14 @@
           <div class="game-tab" onclick="switchGame('wheel', event)">Wheel</div>
         </div>
 
-        <div class="input-group">
+          <div class="input-group">
           <label>Ставка (в Фишках 🟣):</label>
-          <input type="number" id="bet-amount" min="1" value="100">
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="number" id="bet-amount" min="1" value="100" style="flex: 1;">
+            <button type="button" class="btn btn-sm btn-primary" style="white-space: nowrap; padding: 0.8rem;" onclick="applyRecommendedBet()" title="Вставить рекомендуемую ставку">
+              💡 10%: <span id="rec-bet-val">0</span> 🟣
+            </button>
+          </div>
         </div>
 
         <!-- GAME: DICE -->
@@ -919,6 +924,7 @@
       chips: 500,
       money: 100,
       dailyCompleted: 0,
+      lastTaskBalance: 0,
       tasks: [
         { id: 1, name: 'Почистить зубы вовремя', reward: 50, diff: 'easy' },
         { id: 2, name: 'Помыть посуду', reward: 100, diff: 'easy' },
@@ -957,7 +963,11 @@
       document.getElementById('chips-balance').innerText = state.chips.toLocaleString();
       document.getElementById('money-balance').innerText = state.money.toLocaleString();
       document.getElementById('daily-count').innerText = state.dailyCompleted;
-
+// Обновляем значение рекомендуемой ставки в интерфейсе
+      const recBetVal = document.getElementById('rec-bet-val');
+      if (recBetVal) {
+        recBetVal.innerText = getRecommendedBet();
+      }
 // Tasks
 const tasksContainer = document.getElementById('tasks-list');
 tasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
@@ -1188,13 +1198,30 @@ function switchGame(gameName, evt) {
       if (task) {
         task.lastCompleted = Date.now();
         state.chips += task.reward;
+        state.lastTaskBalance = state.chips;
         state.dailyCompleted += 1;
         addHistory(`Выполнено задание: "${task.name}"`, `+${task.reward} 🟣`, true);
         alert(`⚡ Выполнено задание: "${task.name}"!\nПолучено +${task.reward} 🟣`);
         saveState();
       }
     }
+    function getRecommendedBet() {
+      if (state.chips <= 0) return 0;
+      const baseBank = (state.lastTaskBalance && state.lastTaskBalance > 0) ? state.lastTaskBalance : state.chips;
+      
+      let recommended = Math.floor((baseBank * 0.10) / 10) * 10;
+      if (recommended < 10) recommended = 10;
+      return Math.min(recommended, state.chips);
+    }
 
+    function applyRecommendedBet() {
+      const rec = getRecommendedBet();
+      const betInput = document.getElementById('bet-amount');
+      if (betInput) {
+        betInput.value = rec;
+        updateDiceStats();
+      }
+    }
     function buyStoreItem(id) {
       const item = state.store.find(s => s.id === id);
       if (!item) return;
