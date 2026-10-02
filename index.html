@@ -634,15 +634,16 @@
           <div class="game-tab" onclick="switchGame('wheel', event)">Wheel</div>
         </div>
 
-           <div class="input-group">
+                   <div class="input-group">
           <label>Ставка (в Фишках 🟣):</label>
           <div style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
             <input type="number" id="bet-amount" min="1" value="100" style="flex: 1; min-width: 0;">
             <button type="button" class="btn btn-sm btn-primary" style="white-space: nowrap; padding: 0.6rem 0.75rem; font-size: 0.85rem; flex-shrink: 0;" onclick="applyRecommendedBet()" title="Вставить рекомендуемую ставку">
-              💡 10%: <span id="rec-bet-val">0</span> 🟣
+              💡 <span id="rec-bet-val">10%: 0</span> 🟣
             </button>
           </div>
         </div>
+
 
 
         <!-- GAME: DICE -->
@@ -964,11 +965,13 @@
       document.getElementById('chips-balance').innerText = state.chips.toLocaleString();
       document.getElementById('money-balance').innerText = state.money.toLocaleString();
       document.getElementById('daily-count').innerText = state.dailyCompleted;
-// Обновляем значение рекомендуемой ставки в интерфейсе
+             // Обновляем текст и значение рекомендуемой ставки в UI
       const recBetVal = document.getElementById('rec-bet-val');
       if (recBetVal) {
-        recBetVal.innerText = getRecommendedBet();
+        const info = getRecommendedBetInfo();
+        recBetVal.innerText = `${info.percentStr}: ${info.bet.toLocaleString()}`;
       }
+
 // Tasks
 const tasksContainer = document.getElementById('tasks-list');
 tasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
@@ -1206,13 +1209,33 @@ function switchGame(gameName, evt) {
         saveState();
       }
     }
-    function getRecommendedBet() {
-      if (state.chips <= 0) return 0;
+        function getRecommendedBetInfo() {
+      if (state.chips <= 0) return { bet: 0, percentStr: '10%' };
+
       const baseBank = (state.lastTaskBalance && state.lastTaskBalance > 0) ? state.lastTaskBalance : state.chips;
       
-      let recommended = Math.floor((baseBank * 0.10) / 10) * 10;
+      let percent = 0.10;
+      if (baseBank > 60000) {
+        percent = 0.02;
+      } else if (baseBank > 30000) {
+        percent = 0.03;
+      } else if (baseBank > 15000) {
+        percent = 0.05;
+      } else if (baseBank > 5000) {
+        percent = 0.07;
+      }
+
+      let recommended = Math.floor((baseBank * percent) / 10) * 10;
       if (recommended < 10) recommended = 10;
-      return Math.min(recommended, state.chips);
+      
+      return {
+        bet: Math.min(recommended, state.chips),
+        percentStr: `${Math.round(percent * 100)}%`
+      };
+    }
+
+    function getRecommendedBet() {
+      return getRecommendedBetInfo().bet;
     }
 
     function applyRecommendedBet() {
@@ -1223,6 +1246,7 @@ function switchGame(gameName, evt) {
         updateDiceStats();
       }
     }
+
     function buyStoreItem(id) {
       const item = state.store.find(s => s.id === id);
       if (!item) return;
