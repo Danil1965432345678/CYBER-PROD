@@ -1859,7 +1859,7 @@ let selectedWheelColorIdx = 0;
 let wheelGameRotation = 0;
 let wheelSpinningState = 'idle'; // 'idle' (стоит), 'spinning' (крутится), 'stopping' (замедляется)
 let wheelAnimFrameId = null;
-const currentSpinSpeed = 30; // Скорость постоянного вращения (град/кадр)
+const currentSpinSpeed = 20; // Скорость постоянного вращения (град/кадр)
 
 function initWheelGame() {
   const count = parseInt(document.getElementById('wheel-count-select').value) || 4;
