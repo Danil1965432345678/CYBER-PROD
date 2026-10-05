@@ -1307,7 +1307,6 @@ function switchGame(gameName, evt) {
     }
     /* --- TASKS & STORE --- */
     function completeTask(id) {
-function completeTask(id) {
       const task = state.tasks.find(t => t.id === id);
       if (task) {
         const now = Date.now();
