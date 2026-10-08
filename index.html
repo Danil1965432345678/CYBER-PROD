@@ -438,7 +438,63 @@
       z-index: 1;
       transition: opacity 0.2s ease;
     }
+/* Group Styling */
+.group-wrapper {
+  margin-bottom: 1.2rem;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  background: rgba(15, 20, 35, 0.6);
+  overflow: hidden;
+}
 
+.group-header {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.9rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.group-header:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.group-header.open {
+  border-bottom: 1px solid var(--card-border);
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #a78bfa;
+}
+
+.group-body {
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.btn-icon {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  width: auto;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-border);
+  color: #fff;
+  cursor: pointer;
+}
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
     /* List Items */
     .item-list {
       display: flex;
@@ -829,6 +885,36 @@
 
     <!-- TAB 5: EDITOR -->
     <div id="tab-editor" class="tab-content">
+      <!-- Карточка: Создание Новой Группы -->
+<div class="card">
+  <h3>📁 Добавить группу заданий</h3>
+  <div class="input-group" style="margin-top:1rem">
+    <label>Название группы:</label>
+    <input type="text" id="new-group-name" placeholder="Например: Утренний комплекс">
+  </div>
+  
+  <div class="input-group">
+    <label>Добавить задания в группу:</label>
+    <div style="display:flex; gap:0.5rem">
+      <select id="new-group-task-select" style="flex:1"></select>
+      <button type="button" class="btn btn-primary btn-sm" style="width:auto; padding:0 1.2rem; font-size:1.2rem;" onclick="addTempTaskToNewGroup()" title="Добавить задание">+</button>
+    </div>
+  </div>
+
+  <!-- Список добавленных заданий для новой группы -->
+  <div id="new-group-tasks-list" style="margin: 1rem 0; display:flex; flex-direction:column; gap:0.5rem"></div>
+
+  <button class="btn btn-success" onclick="saveNewGroup()">Сохранить группу</button>
+</div>
+
+<!-- Карточка: Управление Последовательностью Групп и Заданий -->
+<div class="card">
+  <h3>📂 Управление группами и последовательностью</h3>
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">
+    Здесь можно менять последовательность групп, а также последовательность заданий внутри каждой группы.
+  </p>
+  <div id="editor-groups-list"></div>
+</div>
       <div class="card">
         <h3>➕ Добавить задание</h3>
         <div class="input-group" style="margin-top:1rem">
@@ -922,28 +1008,35 @@
 
   <script>
     /* --- STATE --- */
-    const DEFAULT_STATE = {
-      chips: 500,
-      money: 100,
-      dailyCompleted: 0,
-      lastTaskBalance: 0,
-      tasks: [
-        { id: 1, name: 'Почистить зубы вовремя', reward: 50, diff: 'easy' },
-        { id: 2, name: 'Помыть посуду', reward: 100, diff: 'easy' },
-        { id: 3, name: 'Занятие английским', reward: 300, diff: 'medium' },
-        { id: 4, name: 'Подъём в 06:00 без откладываний', reward: 1000, diff: 'hard' }
-      ],
-      store: [
-        { id: 1, name: 'Вкусняшка / Газировка', cost: 2000 },
-        { id: 2, name: 'Вечер чилла / Фильм', cost: 6000 },
-        { id: 3, name: 'Полный день релакса', cost: 35000 }
-      ],
-      history: [],
-      currentSeed: ''
-    };
+const DEFAULT_STATE = {
+  chips: 500,
+  money: 100,
+  dailyCompleted: 0,
+  lastTaskBalance: 0,
+  tasks: [
+    { id: 1, name: 'Почистить зубы вовремя', reward: 50, diff: 'easy' },
+    { id: 2, name: 'Помыть посуду', reward: 100, diff: 'easy' },
+    { id: 3, name: 'Занятие английским', reward: 300, diff: 'medium' },
+    { id: 4, name: 'Подъём в 06:00 без откладываний', reward: 1000, diff: 'hard' }
+  ],
+  // ➕ ДОБАВИТЬ МАССИВ ГРУПП:
+  groups: [
+    { id: 101, name: '🌅 Утренние ритуалы', taskIds: [1, 4], collapsed: false },
+    { id: 102, name: '🧠 Развитие и Дела', taskIds: [2, 3], collapsed: false }
+  ],
+store: [
+    { id: 1, name: 'Вкусняшка / Газировка', cost: 2000 },
+    { id: 2, name: 'Вечер чилла / Фильм', cost: 6000 },
+    { id: 3, name: 'Полный день релакса', cost: 35000 }
+  ],
+  history: [],
+  currentSeed: ''
+};
+let state = JSON.parse(localStorage.getItem('cyber_economy_db')) || DEFAULT_STATE;
 
-    let state = JSON.parse(localStorage.getItem('cyber_economy_db')) || DEFAULT_STATE;
-
+// ➕ Добавить проверку и временную переменную:
+if (!state.groups) state.groups = [];
+let tempGroupTaskIds = []; // Массив для сборки заданий новой группы в редакторе
     function saveState() {
       localStorage.setItem('cyber_economy_db', JSON.stringify(state));
       renderUI();
@@ -960,61 +1053,16 @@
       document.getElementById('pf-hash').innerText = hashHex.substring(0, 32) + '...';
     }
 
-    /* --- RENDER UI --- */
-    function renderUI() {
+function renderUI() {
       document.getElementById('chips-balance').innerText = state.chips.toLocaleString();
       document.getElementById('money-balance').innerText = state.money.toLocaleString();
       document.getElementById('daily-count').innerText = state.dailyCompleted;
-             // Обновляем текст и значение рекомендуемой ставки в UI
+      
       const recBetVal = document.getElementById('rec-bet-val');
       if (recBetVal) {
         const info = getRecommendedBetInfo();
         recBetVal.innerText = `${info.percentStr}: ${info.bet.toLocaleString()}`;
       }
-
-// Tasks
-      const tasksContainer = document.getElementById('tasks-list');
-      tasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
-      const now = Date.now();
-
-      state.tasks.forEach(t => {
-        // Проверка наличия поля
-        if (t.streak === undefined) t.streak = 0;
-
-        // Проверяем актуальность серии по календарным дням
-        const daysDiff = getCalendarDaysDiff(t.lastCompleted, now);
-        const activeStreak = (daysDiff > 1) ? 0 : t.streak;
-
-        const lastTimeStr = formatTaskDate(t.lastCompleted);
-        const bonusPercent = Math.min(activeStreak, 100);
-        const totalReward = Math.round(t.reward * (1 + bonusPercent / 100));
-
-        // Получаем стили и плашку для текущего уровня серии
-        const streakVisuals = getStreakStyle(activeStreak);
-
-        tasksContainer.innerHTML += `
-          <div class="item-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; ${streakVisuals.cardStyle}">
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-              <div style="font-size:0.75rem; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">
-                🕒 Последнее выполнение: <span style="color:var(--accent-gold); font-weight:600;">${lastTimeStr}</span>
-              </div>
-              ${streakVisuals.badgeHtml}
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-              <div>
-                <span class="badge badge-${t.diff}">${t.diff}</span>
-                <strong style="margin-left:8px">${t.name}</strong>
-              </div>
-              <div style="display:flex; align-items:center; gap:1rem">
-                <span style="color:var(--primary-chips); font-family:'JetBrains Mono'; font-weight:700">+${totalReward} 🟣</span>
-                <button class="btn btn-success btn-sm" onclick="completeTask(${t.id})">
-                  Завершить
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      });
 
       // Store
       const storeContainer = document.getElementById('store-list');
@@ -1026,22 +1074,6 @@
             <div style="display:flex; align-items:center; gap:1rem">
               <span style="color:var(--primary-money); font-family:'JetBrains Mono'; font-weight:700">${s.cost.toLocaleString()} 💵</span>
               <button class="btn btn-primary btn-sm" onclick="buyStoreItem(${s.id})">Купить</button>
-            </div>
-          </div>
-        `;
-      });
-
-// Editor Tasks
-      const edTasksContainer = document.getElementById('editor-tasks-list');
-      edTasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
-      state.tasks.forEach(t => {
-        edTasksContainer.innerHTML += `
-          <div class="item-row" style="gap: 0.5rem; flex-wrap: wrap;">
-            <div style="flex:1;"><span class="badge badge-${t.diff}">${t.diff}</span> <strong style="margin-left:8px">${t.name}</strong> (${t.reward} 🟣)</div>
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-              <span style="font-size:0.8rem; color:var(--text-muted)">Серия:</span>
-              <input type="number" min="0" value="${t.streak || 0}" style="width:70px; padding:0.2rem 0.4rem; font-size:0.85rem;" onchange="updateTaskStreak(${t.id}, this.value)">
-              <button class="btn btn-danger btn-sm" onclick="deleteTask(${t.id})">🗑️</button>
             </div>
           </div>
         `;
@@ -1075,8 +1107,338 @@
       updateDiceStats();
       updateBankExchange();
       drawBuyWheel();
+
+      // Вызовы отрисовки заданий и групп:
+      renderTasksTab();
+      renderEditorTasks();
+      renderEditorGroups();
+      populateTaskSelects();
+    } // <- ЗДЕСЬ ЗАКРЫВАЕМ renderUI()
+    function renderTaskCardHtml(t, now) {
+      if (t.streak === undefined) t.streak = 0;
+      const daysDiff = getCalendarDaysDiff(t.lastCompleted, now);
+      const activeStreak = (daysDiff > 1) ? 0 : t.streak;
+
+      const lastTimeStr = formatTaskDate(t.lastCompleted);
+      const bonusPercent = Math.min(activeStreak, 100);
+      const totalReward = Math.round(t.reward * (1 + bonusPercent / 100));
+
+      const streakVisuals = getStreakStyle(activeStreak);
+
+      return `
+        <div class="item-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; ${streakVisuals.cardStyle}">
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <div style="font-size:0.75rem; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">
+              🕒 Последнее выполнение: <span style="color:var(--accent-gold); font-weight:600;">${lastTimeStr}</span>
+            </div>
+            ${streakVisuals.badgeHtml}
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <div>
+              <span class="badge badge-${t.diff}">${t.diff}</span>
+              <strong style="margin-left:8px">${t.name}</strong>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem">
+              <span style="color:var(--primary-chips); font-family:'JetBrains Mono'; font-weight:700">+${totalReward} 🟣</span>
+              <button class="btn btn-success btn-sm" onclick="completeTask(${t.id})">
+                Завершить
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+      function renderTasksTab() {
+  const tasksContainer = document.getElementById('tasks-list');
+  if (!tasksContainer) return;
+  tasksContainer.innerHTML = '';
+
+  if (state.tasks.length === 0) {
+    tasksContainer.innerHTML = '<div style="color:var(--text-muted)">Заданий нет</div>';
+    return;
+  }
+
+  const assignedTaskIds = new Set();
+  const now = Date.now();
+
+  // Отрисовка Групп
+  state.groups.forEach(grp => {
+    const isCollapsed = !!grp.collapsed;
+    
+    const grpTasks = grp.taskIds
+      .map(id => state.tasks.find(t => t.id === id))
+      .filter(t => {
+        if (t) { assignedTaskIds.add(t.id); return true; }
+        return false;
+      });
+
+    let groupHtml = `
+      <div class="group-wrapper">
+        <div class="group-header ${!isCollapsed ? 'open' : ''}" onclick="toggleGroupCollapse(${grp.id})">
+          <div class="group-title">
+            <span>${isCollapsed ? '📁' : '📂'}</span>
+            <span>${grp.name}</span>
+            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">(${grpTasks.length} зад.)</span>
+          </div>
+          <div style="font-size:0.9rem; color:var(--text-muted);">
+            ${isCollapsed ? '▶️ Развернуть' : '🔽 Свернуть'}
+          </div>
+        </div>
+    `;
+
+    if (!isCollapsed) {
+      groupHtml += `<div class="group-body">`;
+      if (grpTasks.length === 0) {
+        groupHtml += `<div style="color:var(--text-muted); font-size:0.85rem; padding:0.4rem">В этой группе нет заданий</div>`;
+      } else {
+        grpTasks.forEach(t => {
+          groupHtml += renderTaskCardHtml(t, now);
+        });
+      }
+      groupHtml += `</div>`;
     }
 
+    groupHtml += `</div>`;
+    tasksContainer.innerHTML += groupHtml;
+  });
+
+  // Задания без группы
+  const unassignedTasks = state.tasks.filter(t => !assignedTaskIds.has(t.id));
+  if (unassignedTasks.length > 0) {
+    let unassignedHtml = `
+      <div class="group-wrapper" style="border-color: rgba(255,255,255,0.05);">
+        <div class="group-header open" style="cursor:default;">
+          <div class="group-title" style="color:var(--text-muted)">
+            <span>📌</span>
+            <span>Задания без группы</span>
+            <span style="font-size:0.8rem; font-weight:normal;">(${unassignedTasks.length} зад.)</span>
+          </div>
+        </div>
+        <div class="group-body">
+    `;
+
+    unassignedTasks.forEach(t => {
+      unassignedHtml += renderTaskCardHtml(t, now);
+    });
+
+    unassignedHtml += `</div></div>`;
+    tasksContainer.innerHTML += unassignedHtml;
+  }
+}
+
+function toggleGroupCollapse(grpId) {
+  const grp = state.groups.find(g => g.id === grpId);
+  if (grp) {
+    grp.collapsed = !grp.collapsed;
+    saveState();
+  }
+}
+function renderEditorGroups() {
+  const container = document.getElementById('editor-groups-list');
+  if (!container) return;
+  container.innerHTML = state.groups.length === 0 ? '<div style="color:var(--text-muted)">Групп не создано</div>' : '';
+
+  state.groups.forEach((grp, gIdx) => {
+    let groupCardHtml = `
+      <div style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border); border-radius:12px; padding:1rem; margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem; flex-wrap:wrap; gap:0.5rem">
+          <strong style="color:#a78bfa; font-size:1.1rem">📁 ${grp.name}</strong>
+          <div style="display:flex; gap:0.4rem; align-items:center;">
+            <span style="font-size:0.8rem; color:var(--text-muted); margin-right:0.3rem">Последовательность группы:</span>
+            <button class="btn-icon" onclick="moveGroup(${gIdx}, -1)" ${gIdx === 0 ? 'disabled' : ''}>⬆️</button>
+            <button class="btn-icon" onclick="moveGroup(${gIdx}, 1)" ${gIdx === state.groups.length - 1 ? 'disabled' : ''}>⬇️</button>
+            <button class="btn btn-danger btn-sm" style="margin-left:0.5rem" onclick="deleteGroup(${grp.id})">🗑️ Удалить</button>
+          </div>
+        </div>
+
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.6rem">Последовательность заданий в группе:</div>
+        <div style="display:flex; flex-direction:column; gap:0.4rem; margin-bottom:0.8rem">
+    `;
+
+    if (grp.taskIds.length === 0) {
+      groupCardHtml += `<div style="font-size:0.8rem; color:var(--text-muted)">Нет заданий в группе</div>`;
+    } else {
+      grp.taskIds.forEach((tId, tIdx) => {
+        const task = state.tasks.find(t => t.id === tId);
+        const tName = task ? task.name : `Задание #${tId}`;
+        groupCardHtml += `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.2); padding:0.4rem 0.8rem; border-radius:8px;">
+            <span style="font-size:0.9rem"><strong>${tIdx + 1}.</strong> ${tName}</span>
+            <div style="display:flex; gap:0.3rem">
+              <button class="btn-icon" onclick="moveTaskInGroup(${grp.id}, ${tIdx}, -1)" ${tIdx === 0 ? 'disabled' : ''}>⬆️</button>
+              <button class="btn-icon" onclick="moveTaskInGroup(${grp.id}, ${tIdx}, 1)" ${tIdx === grp.taskIds.length - 1 ? 'disabled' : ''}>⬇️</button>
+              <button class="btn-icon" style="color:var(--accent-danger)" onclick="removeTaskFromGroup(${grp.id}, ${tId})">✖</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    groupCardHtml += `
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.6rem">
+          <select id="add-to-grp-select-${grp.id}" style="flex:1; padding:0.4rem; font-size:0.85rem"></select>
+          <button class="btn btn-primary btn-sm" onclick="addTaskToExistingGroup(${grp.id})">➕ Добавить</button>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML += groupCardHtml;
+  });
+
+  state.groups.forEach(grp => {
+    const select = document.getElementById(`add-to-grp-select-${grp.id}`);
+    if (select) {
+      select.innerHTML = '';
+      state.tasks.forEach(t => {
+        if (!grp.taskIds.includes(t.id)) {
+          select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+        }
+      });
+      if (select.children.length === 0) {
+        select.innerHTML = `<option value="">Все задания уже в группе</option>`;
+      }
+    }
+  });
+}
+
+function populateTaskSelects() {
+  const select = document.getElementById('new-group-task-select');
+  if (!select) return;
+  select.innerHTML = '';
+
+  state.tasks.forEach(t => {
+    if (!tempGroupTaskIds.includes(t.id)) {
+      select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+    }
+  });
+
+  if (select.children.length === 0) {
+    select.innerHTML = `<option value="">Нет доступных заданий</option>`;
+  }
+
+  const tempContainer = document.getElementById('new-group-tasks-list');
+  if (tempContainer) {
+    tempContainer.innerHTML = '';
+    tempGroupTaskIds.forEach((tId, idx) => {
+      const task = state.tasks.find(t => t.id === tId);
+      const tName = task ? task.name : `Задание #${tId}`;
+      tempContainer.innerHTML += `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:0.5rem 0.8rem; border-radius:8px;">
+          <span><strong>${idx + 1}.</strong> ${tName}</span>
+          <div style="display:flex; gap:0.3rem">
+            <button class="btn-icon" onclick="moveTempTask(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>⬆️</button>
+            <button class="btn-icon" onclick="moveTempTask(${idx}, 1)" ${idx === tempGroupTaskIds.length - 1 ? 'disabled' : ''}>⬇️</button>
+            <button class="btn-icon" style="color:var(--accent-danger)" onclick="removeTempTask(${tId})">✖</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+}
+
+function addTempTaskToNewGroup() {
+  const select = document.getElementById('new-group-task-select');
+  if (!select || !select.value) return;
+  const tId = parseInt(select.value);
+  if (!isNaN(tId) && !tempGroupTaskIds.includes(tId)) {
+    tempGroupTaskIds.push(tId);
+    populateTaskSelects();
+  }
+}
+
+function removeTempTask(tId) {
+  tempGroupTaskIds = tempGroupTaskIds.filter(id => id !== tId);
+  populateTaskSelects();
+}
+
+function moveTempTask(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= tempGroupTaskIds.length) return;
+  const item = tempGroupTaskIds.splice(idx, 1)[0];
+  tempGroupTaskIds.splice(newIdx, 0, item);
+  populateTaskSelects();
+}
+
+function saveNewGroup() {
+  const nameInput = document.getElementById('new-group-name');
+  const name = nameInput.value.trim();
+  if (!name) return alert('Введите название группы!');
+
+  state.groups.push({
+    id: Date.now(),
+    name: name,
+    taskIds: [...tempGroupTaskIds],
+    collapsed: false
+  });
+
+  nameInput.value = '';
+  tempGroupTaskIds = [];
+  saveState();
+}
+
+function deleteGroup(grpId) {
+  if (confirm('Удалить эту группу? (Задания не удалятся)')) {
+    state.groups = state.groups.filter(g => g.id !== grpId);
+    saveState();
+  }
+}
+
+function moveGroup(index, direction) {
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= state.groups.length) return;
+  const group = state.groups.splice(index, 1)[0];
+  state.groups.splice(newIndex, 0, group);
+  saveState();
+}
+
+function moveTaskInGroup(grpId, taskIdx, direction) {
+  const grp = state.groups.find(g => g.id === grpId);
+  if (!grp) return;
+  const newIdx = taskIdx + direction;
+  if (newIdx < 0 || newIdx >= grp.taskIds.length) return;
+  const taskId = grp.taskIds.splice(taskIdx, 1)[0];
+  grp.taskIds.splice(newIdx, 0, taskId);
+  saveState();
+}
+
+function removeTaskFromGroup(grpId, taskId) {
+  const grp = state.groups.find(g => g.id === grpId);
+  if (grp) {
+    grp.taskIds = grp.taskIds.filter(id => id !== taskId);
+    saveState();
+  }
+}
+
+function addTaskToExistingGroup(grpId) {
+  const select = document.getElementById(`add-to-grp-select-${grpId}`);
+  if (!select || !select.value) return;
+  const taskId = parseInt(select.value);
+  if (isNaN(taskId)) return;
+
+  const grp = state.groups.find(g => g.id === grpId);
+  if (grp && !grp.taskIds.includes(taskId)) {
+    grp.taskIds.push(taskId);
+    saveState();
+  }
+}    
+function renderEditorTasks() {
+      const edTasksContainer = document.getElementById('editor-tasks-list');
+      if (!edTasksContainer) return;
+      edTasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
+      state.tasks.forEach(t => {
+        edTasksContainer.innerHTML += `
+          <div class="item-row" style="gap: 0.5rem; flex-wrap: wrap;">
+            <div style="flex:1;"><span class="badge badge-${t.diff}">${t.diff}</span> <strong style="margin-left:8px">${t.name}</strong> (${t.reward} 🟣)</div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="font-size:0.8rem; color:var(--text-muted)">Серия:</span>
+              <input type="number" min="0" value="${t.streak || 0}" style="width:70px; padding:0.2rem 0.4rem; font-size:0.85rem;" onchange="updateTaskStreak(${t.id}, this.value)">
+              <button class="btn btn-danger btn-sm" onclick="deleteTask(${t.id})">🗑️</button>
+            </div>
+          </div>
+        `;
+      });
+    }
     function switchTab(tabName, evt) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -1406,12 +1768,16 @@ function switchGame(gameName, evt) {
       saveState();
     }
 
-    function deleteTask(id) {
-      if (confirm('Удалить задание?')) {
-        state.tasks = state.tasks.filter(t => t.id !== id);
-        saveState();
-      }
-    }
+function deleteTask(id) {
+  if (confirm('Удалить задание?')) {
+    state.tasks = state.tasks.filter(t => t.id !== id);
+    // ➕ Очищаем ссылки на задание из групп
+    state.groups.forEach(grp => {
+      grp.taskIds = grp.taskIds.filter(tId => tId !== id);
+    });
+    saveState();
+  }
+}
     function updateTaskStreak(id, value) {
       const task = state.tasks.find(t => t.id === id);
       if (task) {
@@ -2100,11 +2466,12 @@ function importDataFromFile(event) {
     try {
       const importedState = JSON.parse(e.target.result);
       if (typeof importedState === 'object' && importedState !== null) {
-        state = Object.assign({}, DEFAULT_STATE, importedState);
-        saveState();
-        closeAdminModal();
-        alert('✅ Все данные приложения (баланс, задачи, магазин) успешно восстановлены!');
-      } else {
+  state = Object.assign({}, DEFAULT_STATE, importedState);
+  if (!state.groups) state.groups = []; // ➕ Гарантия поддержки групп
+  saveState();
+  closeAdminModal();
+  alert('✅ Все данные успешно восстановлены!');
+} else {
         alert('❌ Ошибка: Файл содержит некорректный формат данных!');
       }
     } catch (err) {
