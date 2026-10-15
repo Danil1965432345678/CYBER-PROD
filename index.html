@@ -453,6 +453,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem; 
   cursor: pointer;
   user-select: none;
   transition: background 0.2s;
@@ -1126,24 +1127,29 @@ function renderUI() {
       const streakVisuals = getStreakStyle(activeStreak);
 
       return `
-        <div class="item-row" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; ${streakVisuals.cardStyle}">
-          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+        <div class="item-row" style="flex-direction: column; align-items: flex-start; gap: 0.75rem; ${streakVisuals.cardStyle}">
+          <!-- Строка 1: Инфо о выполнении и серия -->
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap: 0.5rem;">
             <div style="font-size:0.75rem; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">
-              🕒 Последнее выполнение: <span style="color:var(--accent-gold); font-weight:600;">${lastTimeStr}</span>
+              🕒 Последнее: <span style="color:var(--accent-gold); font-weight:600;">${lastTimeStr}</span>
             </div>
             ${streakVisuals.badgeHtml}
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-            <div>
-              <span class="badge badge-${t.diff}">${t.diff}</span>
-              <strong style="margin-left:8px">${t.name}</strong>
-            </div>
-            <div style="display:flex; align-items:center; gap:1rem">
-              <span style="color:var(--primary-chips); font-family:'JetBrains Mono'; font-weight:700">+${totalReward} 🟣</span>
-              <button class="btn btn-success btn-sm" onclick="completeTask(${t.id})">
-                Завершить
-              </button>
-            </div>
+
+          <!-- Строка 2: Плашка сложности и название задания на всю ширину -->
+          <div style="display:flex; align-items:center; gap: 0.6rem; width:100%;">
+            <span class="badge badge-${t.diff}" style="flex-shrink:0;">${t.diff}</span>
+            <strong style="font-size:1.05rem; word-break:break-word;">${t.name}</strong>
+          </div>
+
+          <!-- Строка 3: Награда слева, кнопка «Завершить» справа -->
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding-top: 0.2rem; border-top: 1px solid rgba(255,255,255,0.04);">
+            <span style="color:var(--primary-chips); font-family:'JetBrains Mono', monospace; font-size:1.05rem; font-weight:700;">
+              +${totalReward} 🟣
+            </span>
+            <button class="btn btn-success btn-sm" style="padding: 0.5rem 1.2rem; font-size: 0.9rem;" onclick="completeTask(${t.id})">
+              Завершить
+            </button>
           </div>
         </div>
       `;
