@@ -883,82 +883,94 @@
         <div class="item-list" id="store-list"></div>
       </div>
     </div>
-
-    <!-- TAB 5: EDITOR -->
+<!-- TAB 5: EDITOR -->
     <div id="tab-editor" class="tab-content">
-      <!-- Карточка: Создание Новой Группы -->
-<div class="card">
-  <h3>📁 Добавить группу заданий</h3>
-  <div class="input-group" style="margin-top:1rem">
-    <label>Название группы:</label>
-    <input type="text" id="new-group-name" placeholder="Например: Утренний комплекс">
-  </div>
-  
-  <div class="input-group">
-    <label>Добавить задания в группу:</label>
-    <div style="display:flex; gap:0.5rem">
-      <select id="new-group-task-select" style="flex:1"></select>
-      <button type="button" class="btn btn-primary btn-sm" style="width:auto; padding:0 1.2rem; font-size:1.2rem;" onclick="addTempTaskToNewGroup()" title="Добавить задание">+</button>
-    </div>
-  </div>
 
-  <!-- Список добавленных заданий для новой группы -->
-  <div id="new-group-tasks-list" style="margin: 1rem 0; display:flex; flex-direction:column; gap:0.5rem"></div>
-
-  <button class="btn btn-success" onclick="saveNewGroup()">Сохранить группу</button>
-</div>
-
-<!-- Карточка: Управление Последовательностью Групп и Заданий -->
-<div class="card">
-  <h3>📂 Управление группами и последовательностью</h3>
-  <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">
-    Здесь можно менять последовательность групп, а также последовательность заданий внутри каждой группы.
-  </p>
-  <div id="editor-groups-list"></div>
-</div>
-      <div class="card">
-        <h3>➕ Добавить задание</h3>
-        <div class="input-group" style="margin-top:1rem">
-          <label>Название:</label>
-          <input type="text" id="new-task-name" placeholder="Прочитать книгу">
-        </div>
-        <div class="input-group">
-          <label>Награда (Фишки 🟣):</label>
-          <input type="number" id="new-task-reward" value="150">
-        </div>
-        <div class="input-group">
-          <label>Сложность:</label>
-          <select id="new-task-diff">
-            <option value="easy">Простая</option>
-            <option value="medium">Средняя</option>
-            <option value="hard">Сложная</option>
-          </select>
-        </div>
-        <button class="btn btn-success" onclick="addNewTask()">Сохранить задание</button>
+      <!-- Встроенные компактные группы редактора -->
+      <div style="display: flex; gap: 0.4rem; margin-bottom: 1.2rem; background: rgba(0,0,0,0.3); padding: 0.35rem; border-radius: 12px; border: 1px solid var(--card-border);">
+        <button id="ed-subtab-groups-btn" class="nav-btn active" style="flex:1; padding:0.6rem 0.2rem; font-size:0.85rem; text-align:center;" onclick="switchEditorSubTab('groups')">📂 Группы</button>
+        <button id="ed-subtab-tasks-btn" class="nav-btn" style="flex:1; padding:0.6rem 0.2rem; font-size:0.85rem; text-align:center;" onclick="switchEditorSubTab('tasks')">⚡ Задания</button>
+        <button id="ed-subtab-store-btn" class="nav-btn" style="flex:1; padding:0.6rem 0.2rem; font-size:0.85rem; text-align:center;" onclick="switchEditorSubTab('store')">🛒 Магазин</button>
       </div>
 
-      <div class="card">
-        <h3>🗑️ Управление заданиями</h3>
-        <div class="item-list" id="editor-tasks-list" style="margin-top:1rem"></div>
+      <!-- РАЗДЕЛ 1: ГРУППЫ -->
+      <div id="ed-subtab-groups" class="editor-subtab">
+        <div class="card">
+          <h3>📁 Добавить группу заданий</h3>
+          <div class="input-group" style="margin-top:1rem">
+            <label>Название группы:</label>
+            <input type="text" id="new-group-name" placeholder="Например: Утренний комплекс">
+          </div>
+          <div class="input-group">
+            <label>Добавить задания в группу:</label>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <select id="new-group-task-select" style="flex:1; min-width:0;"></select>
+              <button type="button" class="btn btn-primary btn-sm" style="flex-shrink:0; padding:0.75rem 1.1rem; font-size:1.1rem; line-height:1;" onclick="addTempTaskToNewGroup()" title="Добавить">+</button>
+            </div>
+          </div>
+          <div id="new-group-tasks-list" style="margin: 0.8rem 0; display:flex; flex-direction:column; gap:0.5rem"></div>
+          <button class="btn btn-success" onclick="saveNewGroup()">Сохранить группу</button>
+        </div>
+
+        <div class="card">
+          <h3>📂 Управление группами и порядком</h3>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.4rem; margin-bottom:1rem;">
+            Меняйте порядок групп стрелочками в шапке, а также порядок заданий внутри каждой группы.
+          </p>
+          <div id="editor-groups-list"></div>
+        </div>
       </div>
 
-      <div class="card">
-        <h3>➕ Добавить награду в Магазин</h3>
-        <div class="input-group" style="margin-top:1rem">
-          <label>Название:</label>
-          <input type="text" id="new-item-name" placeholder="Поход в кино">
+      <!-- РАЗДЕЛ 2: ЗАДАНИЯ -->
+      <div id="ed-subtab-tasks" class="editor-subtab" style="display:none;">
+        <div class="card">
+          <h3>➕ Добавить задание</h3>
+          <div class="input-group" style="margin-top:1rem">
+            <label>Название:</label>
+            <input type="text" id="new-task-name" placeholder="Прочитать книгу">
+          </div>
+          <div class="input-group">
+            <label>Награда (Фишки 🟣):</label>
+            <input type="number" id="new-task-reward" value="150">
+          </div>
+          <div class="input-group">
+            <label>Сложность:</label>
+            <select id="new-task-diff">
+              <option value="easy">Простая</option>
+              <option value="medium">Средняя</option>
+              <option value="hard">Сложная</option>
+            </select>
+          </div>
+          <button class="btn btn-success" onclick="addNewTask()">Сохранить задание</button>
         </div>
-        <div class="input-group">
-          <label>Цена (Деньги 💵):</label>
-          <input type="number" id="new-item-cost" value="2000">
+
+        <div class="card">
+          <h3>📋 Управление заданиями и сериями</h3>
+          <div class="item-list" id="editor-tasks-list" style="margin-top:1rem"></div>
         </div>
-        <button class="btn btn-success" onclick="addNewStoreItem()">Сохранить товар</button>
       </div>
 
-      <div class="card">
-        <h3>🗑️ Управление товарами</h3>
-        <div class="item-list" id="editor-store-list" style="margin-top:1rem"></div>
+      <!-- РАЗДЕЛ 3: МАГАЗИН -->
+      <div id="ed-subtab-store" class="editor-subtab" style="display:none;">
+        <div class="card">
+          <h3>➕ Добавить награду в Магазин</h3>
+          <div class="input-group" style="margin-top:1rem">
+            <label>Название:</label>
+            <input type="text" id="new-item-name" placeholder="Поход в кино">
+          </div>
+          <div class="input-group">
+            <label>Цена (Деньги 💵):</label>
+            <input type="number" id="new-item-cost" value="2000">
+          </div>
+          <button class="btn btn-success" onclick="addNewStoreItem()">Сохранить товар</button>
+        </div>
+
+        <div class="card">
+          <h3>🛍️ Управление товарами</h3>
+          <div class="item-list" id="editor-store-list" style="margin-top:1rem"></div>
+        </div>
       </div>
+
     </div>
 
     <!-- TAB 6: HISTORY -->
@@ -1079,15 +1091,17 @@ function renderUI() {
           </div>
         `;
       });
-
-      // Editor Store
+     // Editor Store
       const edStoreContainer = document.getElementById('editor-store-list');
       edStoreContainer.innerHTML = state.store.length === 0 ? '<div style="color:var(--text-muted)">Товаров нет</div>' : '';
       state.store.forEach(s => {
         edStoreContainer.innerHTML += `
-          <div class="item-row">
-            <div><strong>${s.name}</strong> (${s.cost.toLocaleString()} 💵)</div>
-            <button class="btn btn-danger btn-sm" onclick="deleteStoreItem(${s.id})">🗑️ Удалить</button>
+          <div class="item-row" style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; padding:0.8rem;">
+            <div style="min-width:0;">
+              <strong style="word-break:break-word; font-size:0.95rem;">${s.name}</strong>
+              <div style="color:var(--primary-money); font-family:'JetBrains Mono'; font-weight:700; font-size:0.85rem; margin-top:2px;">${s.cost.toLocaleString()} 💵</div>
+            </div>
+            <button class="btn btn-danger btn-sm" style="flex-shrink:0; padding:0.4rem 0.8rem;" onclick="deleteStoreItem(${s.id})">🗑️ Удалить</button>
           </div>
         `;
       });
@@ -1239,6 +1253,16 @@ function toggleGroupCollapse(grpId) {
     saveState();
   }
 }
+// Функция переключения встроенных разделов Редактора
+function switchEditorSubTab(subTab) {
+  ['groups', 'tasks', 'store'].forEach(t => {
+    const el = document.getElementById(`ed-subtab-${t}`);
+    const btn = document.getElementById(`ed-subtab-${t}-btn`);
+    if (el) el.style.display = (t === subTab) ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', t === subTab);
+  });
+}
+
 function renderEditorGroups() {
   const container = document.getElementById('editor-groups-list');
   if (!container) return;
@@ -1246,18 +1270,18 @@ function renderEditorGroups() {
 
   state.groups.forEach((grp, gIdx) => {
     let groupCardHtml = `
-      <div style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border); border-radius:12px; padding:1rem; margin-bottom:1rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem; flex-wrap:wrap; gap:0.5rem">
-          <strong style="color:#a78bfa; font-size:1.1rem">📁 ${grp.name}</strong>
-          <div style="display:flex; gap:0.4rem; align-items:center;">
-            <span style="font-size:0.8rem; color:var(--text-muted); margin-right:0.3rem">Последовательность группы:</span>
-            <button class="btn-icon" onclick="moveGroup(${gIdx}, -1)" ${gIdx === 0 ? 'disabled' : ''}>⬆️</button>
-            <button class="btn-icon" onclick="moveGroup(${gIdx}, 1)" ${gIdx === state.groups.length - 1 ? 'disabled' : ''}>⬇️</button>
-            <button class="btn btn-danger btn-sm" style="margin-left:0.5rem" onclick="deleteGroup(${grp.id})">🗑️ Удалить</button>
+      <div style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border); border-radius:12px; padding:0.9rem; margin-bottom:1rem;">
+        <!-- Аккуратная шапка без вылетов кнопок -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem; gap:0.5rem;">
+          <strong style="color:#a78bfa; font-size:1.05rem; word-break:break-word; min-width:0;">📁 ${grp.name}</strong>
+          <div style="display:flex; gap:0.3rem; align-items:center; flex-shrink:0;">
+            <button class="btn-icon" title="Выше" onclick="moveGroup(${gIdx}, -1)" ${gIdx === 0 ? 'disabled' : ''}>⬆️</button>
+            <button class="btn-icon" title="Ниже" onclick="moveGroup(${gIdx}, 1)" ${gIdx === state.groups.length - 1 ? 'disabled' : ''}>⬇️</button>
+            <button class="btn-icon" style="color:var(--accent-danger); border-color:rgba(239,68,68,0.4);" title="Удалить группу" onclick="deleteGroup(${grp.id})">🗑️</button>
           </div>
         </div>
 
-        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.6rem">Последовательность заданий в группе:</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem">Задания в группе:</div>
         <div style="display:flex; flex-direction:column; gap:0.4rem; margin-bottom:0.8rem">
     `;
 
@@ -1268,12 +1292,12 @@ function renderEditorGroups() {
         const task = state.tasks.find(t => t.id === tId);
         const tName = task ? task.name : `Задание #${tId}`;
         groupCardHtml += `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.2); padding:0.4rem 0.8rem; border-radius:8px;">
-            <span style="font-size:0.9rem"><strong>${tIdx + 1}.</strong> ${tName}</span>
-            <div style="display:flex; gap:0.3rem">
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.25); padding:0.45rem 0.7rem; border-radius:8px; gap:0.4rem;">
+            <span style="font-size:0.85rem; word-break:break-word; min-width:0;"><strong style="color:var(--text-muted)">${tIdx + 1}.</strong> ${tName}</span>
+            <div style="display:flex; gap:0.25rem; flex-shrink:0;">
               <button class="btn-icon" onclick="moveTaskInGroup(${grp.id}, ${tIdx}, -1)" ${tIdx === 0 ? 'disabled' : ''}>⬆️</button>
               <button class="btn-icon" onclick="moveTaskInGroup(${grp.id}, ${tIdx}, 1)" ${tIdx === grp.taskIds.length - 1 ? 'disabled' : ''}>⬇️</button>
-              <button class="btn-icon" style="color:var(--accent-danger)" onclick="removeTaskFromGroup(${grp.id}, ${tId})">✖</button>
+              <button class="btn-icon" style="color:var(--accent-danger); border-color:rgba(239,68,68,0.3);" onclick="removeTaskFromGroup(${grp.id}, ${tId})">✖</button>
             </div>
           </div>
         `;
@@ -1282,9 +1306,10 @@ function renderEditorGroups() {
 
     groupCardHtml += `
         </div>
-        <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.6rem">
-          <select id="add-to-grp-select-${grp.id}" style="flex:1; padding:0.4rem; font-size:0.85rem"></select>
-          <button class="btn btn-primary btn-sm" onclick="addTaskToExistingGroup(${grp.id})">➕ Добавить</button>
+        <!-- Добавление нового задания в группу -->
+        <div style="display:flex; gap:0.4rem; align-items:center; margin-top:0.6rem">
+          <select id="add-to-grp-select-${grp.id}" style="flex:1; min-width:0; padding:0.45rem; font-size:0.85rem"></select>
+          <button class="btn btn-primary btn-sm" style="flex-shrink:0; white-space:nowrap; padding:0.5rem 0.8rem;" onclick="addTaskToExistingGroup(${grp.id})">➕ Добавить</button>
         </div>
       </div>
     `;
@@ -1307,7 +1332,6 @@ function renderEditorGroups() {
     }
   });
 }
-
 function populateTaskSelects() {
   const select = document.getElementById('new-group-task-select');
   if (!select) return;
@@ -1429,44 +1453,34 @@ function addTaskToExistingGroup(grpId) {
   }
 }    
 function renderEditorTasks() {
-      const edTasksContainer = document.getElementById('editor-tasks-list');
-      if (!edTasksContainer) return;
-      edTasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
-      state.tasks.forEach(t => {
-        edTasksContainer.innerHTML += `
-          <div class="item-row" style="gap: 0.5rem; flex-wrap: wrap;">
-            <div style="flex:1;"><span class="badge badge-${t.diff}">${t.diff}</span> <strong style="margin-left:8px">${t.name}</strong> (${t.reward} 🟣)</div>
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-              <span style="font-size:0.8rem; color:var(--text-muted)">Серия:</span>
-              <input type="number" min="0" value="${t.streak || 0}" style="width:70px; padding:0.2rem 0.4rem; font-size:0.85rem;" onchange="updateTaskStreak(${t.id}, this.value)">
-              <button class="btn btn-danger btn-sm" onclick="deleteTask(${t.id})">🗑️</button>
-            </div>
+  const edTasksContainer = document.getElementById('editor-tasks-list');
+  if (!edTasksContainer) return;
+  edTasksContainer.innerHTML = state.tasks.length === 0 ? '<div style="color:var(--text-muted)">Заданий нет</div>' : '';
+  
+  state.tasks.forEach(t => {
+    edTasksContainer.innerHTML += `
+      <div class="item-row" style="flex-direction: column; align-items: stretch; gap: 0.6rem; padding: 0.85rem;">
+        <!-- Верхняя строка: плашка, название и награда -->
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.5rem; min-width:0;">
+            <span class="badge badge-${t.diff}" style="flex-shrink:0;">${t.diff}</span>
+            <strong style="word-break:break-word; font-size:0.95rem;">${t.name}</strong>
           </div>
-        `;
-      });
-    }
-    function switchTab(tabName, evt) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById(`tab-${tabName}`).classList.add('active');
-      if (evt && evt.target) evt.target.classList.add('active');
-      if (tabName === 'buy-chips') drawBuyWheel();
-    }
+          <span style="color:var(--primary-chips); font-family:'JetBrains Mono', monospace; font-weight:700; flex-shrink:0;">+${t.reward} 🟣</span>
+        </div>
 
-function switchGame(gameName, evt) {
-  document.querySelectorAll('.game-box').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
-  document.getElementById(`game-${gameName}`).style.display = 'block';
-  if (evt && evt.target) evt.target.classList.add('active');
-  if (gameName === 'thimbles') resetThimblesPositions();
-  if (gameName === 'wheel') initWheelGame(); // Инициализация колеса
+        <!-- Нижняя строка: редактирование серии и удаление -->
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-top:0.4rem; border-top:1px solid rgba(255,255,255,0.05);">
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <span style="font-size:0.8rem; color:var(--text-muted)">🔥 Серия:</span>
+            <input type="number" min="0" value="${t.streak || 0}" style="width:65px; padding:0.2rem 0.4rem; font-size:0.85rem; text-align:center;" onchange="updateTaskStreak(${t.id}, this.value)">
+          </div>
+          <button class="btn btn-danger btn-sm" style="padding:0.35rem 0.8rem;" onclick="deleteTask(${t.id})">🗑️ Удалить</button>
+        </div>
+      </div>
+    `;
+  });
 }
-
-    function addHistory(details, amount, win = true) {
-      const time = new Date().toLocaleTimeString();
-      state.history.push({ time, details, amount, win });
-      if (state.history.length > 30) state.history.shift();
-    }
 
     /* --- BUY CHIPS TAB LOGIC --- */
     function switchBuyMode(mode) {
