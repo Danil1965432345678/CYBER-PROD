@@ -1481,7 +1481,31 @@ function renderEditorTasks() {
     `;
   });
 }
+/* --- НАВИГАЦИЯ И ИСТОРИЯ --- */
+    function switchTab(tabName, evt) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('nav .nav-btn').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(`tab-${tabName}`);
+      if (target) target.classList.add('active');
+      if (evt && evt.target) evt.target.classList.add('active');
+      if (tabName === 'buy-chips') drawBuyWheel();
+    }
 
+    function switchGame(gameName, evt) {
+      document.querySelectorAll('.game-box').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active'));
+      const targetGame = document.getElementById(`game-${gameName}`);
+      if (targetGame) targetGame.style.display = 'block';
+      if (evt && evt.target) evt.target.classList.add('active');
+      if (gameName === 'thimbles') resetThimblesPositions();
+      if (gameName === 'wheel') initWheelGame();
+    }
+
+    function addHistory(details, amount, win = true) {
+      const time = new Date().toLocaleTimeString();
+      state.history.push({ time, details, amount, win });
+      if (state.history.length > 30) state.history.shift();
+    }
     /* --- BUY CHIPS TAB LOGIC --- */
     function switchBuyMode(mode) {
       document.getElementById('buy-mode-bank').style.display = mode === 'bank' ? 'block' : 'none';
